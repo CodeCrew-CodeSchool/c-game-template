@@ -1,6 +1,6 @@
 # STEPS
 
-[Follow the Steps for your OS](../raylib-cmake-template/README.md) [Install Raylib](../raylib-cmake-template/.vscode) [Install Raylib](../raylib-cmake-template/resources) [Install Raylib](../raylib-cmake-template/web) [Install Raylib](../raylib-cmake-template/CMakeLists.txt) [Install Raylib](../raylib-cmake-template/main.c) [Install Raylib](../raylib-cmake-template/main.code-workspace) [Install Raylib](../raylib-cmake-template/main.exe) [Install Raylib](../raylib-cmake-template/Makefile) [Install Raylib](../raylib-cmake-template/Makefile.Android)
+[Follow the Steps for your OS](https://github.com/raysan5/raylib/wiki/Using-raylib-in-VSCode#mac)
 
 # Extent
 Demonstrates a the build process of a **simple & portable** raylib application for Desktop / Web.
