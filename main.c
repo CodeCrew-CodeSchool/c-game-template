@@ -32,12 +32,12 @@ void gameLoop(){
     BeginDrawing();
     BeginTextureMode(rt);
     ClearBackground(CLITERAL(Color){0, 0, 0, 255});
-    DrawCircle(GetMouseX(), GetMouseY() / 2, 50, CLITERAL(Color){255,255,0,255});
+    DrawCircle(GetMouseX(), GetMouseY() * -1 + 1080, 50, CLITERAL(Color){255,255,0,255});
     EndTextureMode();
     DrawTexture(rt.texture, 0, 0, CLITERAL(Color){255,255,255,255});
     DrawFPS(0, 0);
-    DrawText(TextFormat("MouseX: %f", GetMouseX()), 0, 10, 20, WHITE);
-    DrawText(TextFormat("MouseY: %f", GetMouseY()), 0, 20, 20, WHITE);
+    DrawText(TextFormat("MouseX: %d", GetMouseX()), 0, 10, 20, WHITE);
+    DrawText(TextFormat("MouseY: %d", GetMouseY() * -1 + 1080), 0, 20, 20, WHITE);
     #ifdef __EMSCRIPTEN__
     char* text = idbfs_get("file.txt");
     DrawText(TextFormat("Dynamic file content: %s", text), 0, 30, 20, WHITE);
