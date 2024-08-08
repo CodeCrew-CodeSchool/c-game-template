@@ -1,34 +1,31 @@
-# STEPS
+## Raylib Visual Studio Code C Template for macOS
 
-[Follow the Steps for your OS](https://github.com/raysan5/raylib/wiki/Using-raylib-in-VSCode#mac)
+A simple Raylib project template for macOS to run and debug using VS Code and the C Programming Language.
 
-# Extent
-Demonstrates a the build process of a **simple & portable** raylib application for Desktop / Web.
+### Steps
 
-- (Static) assets passed via `--preload-file` for Web
-- Dynamic files using IDBFS (browser storage)
+1. run `make` from terminal to compile using the included [Makefile](/Makefile)
+2. run the game with the command `./bin/game_osx` (the compiled game path)
 
-# Usage
-```sh
-git clone https://github.com/manuel5975p/raylib-cmake-template.git
-cd raylib-cmake-template
-mkdir build && cd build
-cmake .. -DCMAKE_BUILD_TYPE=Debug #Can also be =Release, =RelWithDebInfo, nothing defaults to Debug
-make -j4
-./main
-```
-## Usage for Web
-Requires [emscripten](https://emscripten.org/docs/getting_started/downloads.html).
+### Notes
 
-```sh
-mkdir build_web && cd build_web
-emcmake cmake .. -DCMAKE_BUILD_TYPE=Release -DPLATFORM=Web
-make -j4
-```
-## Usage with VSCode
+* If you are asked to select a compiler when debugging for the first time, select C/C++ Clang:
+* Compilation info can be found in [.vscode/tasks.json](.vscode/tasks.json)
+* The binary is compiled to the `bin` directory
 
-- Open the `raylib-cmake-template` directory in VSCode
-- Make sure the "C/C++" extension as well "CMake Tools" are installed
-- Also have a compiler installed (e.g. [the latest w64devkit](https://github.com/skeeto/w64devkit/releases))
-- Hit the debug, build button or hit Ctrl+Shift+P for the command menu and run "CMake: Debug" or something similar
+### Alternative Steps with Apple Developer Tools
 
+1. Install Apple Developer Tools / Xcode
+2. Install the offical Microsoft [C/C++ Extension Pack for VS Code](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools-extension-pack)
+3. Open this project in VS Code, navigate and open [src/main.c](/src/main.c)
+4. Press `f5` to start debugging or press the play icon in the top right of the source window.
+5. After compiling, the game executable will launch with the text "Raylib Says Hello!"
+
+
+
+---
+## Disclaimer
+
+I created this project because I couldn't find much information on running Raylib outside of XCode on macOS. It comes with no guarantees or support and should be seen soley as a starting point to getting Raylib working in VS Code. 
+
+If you have any suggesstions for improving it, let me know.
