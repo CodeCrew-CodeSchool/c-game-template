@@ -29,3 +29,7 @@ A simple Raylib project template for macOS to run and debug using VS Code and th
 I created this project because I couldn't find much information on running Raylib outside of XCode on macOS. It comes with no guarantees or support and should be seen soley as a starting point to getting Raylib working in VS Code. 
 
 If you have any suggesstions for improving it, let me know.
+
+## Credit
+
+Thank you [moopa](https://github.com/moopa/raylib-vscode-macos-template)
