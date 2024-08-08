@@ -21,7 +21,7 @@
         {
             "name": "Mac",
             "includePath": [
-                "/usr/local/opt/raylib/include/src/**",
+                "/usr/local/opt/raylib/include/**",
                 "${workspaceFolder}/**"
             ],
             "defines": [
