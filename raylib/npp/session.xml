@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<NotepadPlus>
+    <Session activeView="0">
+        <mainView activeIndex="1">
+            <File firstVisibleLine="0" xOffset="0" scrollWidth="1" startPos="199" endPos="199" selMode="0" offset="0" wrapCount="1" lang="C++" encoding="-1" userReadOnly="no" filename="C:\raylib\raylib\src\raylib.h" backupFilePath="" originalFileLastModifTimestamp="1756357888" originalFileLastModifTimestampHigh="31070247" tabColourId="-1" mapFirstVisibleDisplayLine="-1" mapFirstVisibleDocLine="-1" mapLastVisibleDocLine="-1" mapNbLine="-1" mapHigherPos="-1" mapWidth="-1" mapHeight="-1" mapKByteInDoc="512" mapWrapIndentMode="-1" mapIsWrap="no" />
+            <File firstVisibleLine="32" xOffset="0" scrollWidth="1488" startPos="164" endPos="164" selMode="0" offset="0" wrapCount="1" lang="C" encoding="-1" userReadOnly="no" filename="C:\raylib\raylib\examples\core\core_basic_window.c" backupFilePath="" originalFileLastModifTimestamp="1736357888" originalFileLastModifTimestampHigh="31070247" tabColourId="-1" mapFirstVisibleDisplayLine="-1" mapFirstVisibleDocLine="-1" mapLastVisibleDocLine="-1" mapNbLine="-1" mapHigherPos="-1" mapWidth="-1" mapHeight="-1" mapKByteInDoc="512" mapWrapIndentMode="-1" mapIsWrap="no" />
+        </mainView>
+        <subView activeIndex="0" />
+    </Session>
+</NotepadPlus>

@@ -1,0 +1,35 @@
+Notepad++ v8.5.8 bug-fixes and new features:
+
+ 1. Fix "Clear Read-Only Flag" command not working immediately regression.
+ 2. Fix saving files losing Alternate Data Stream issue.
+ 3. Fix data loss issue due to no room on disk for saving.
+ 4. Add Win10/Win11 Restart-application feature.
+ 5. Fix user created session being modified behaviour on exit.
+ 6. Improve document list display performance.
+ 7. Update Scintilla to v5.3.7 & Lexilla to v5.2.7.
+ 8. Fix unwanted Afrikaans installer language issue.
+ 9. Fix a crash issue while reading settings from cloud. 
+10. Fix  security issue CVE-2022-31901.
+11. Enhance non-saved search text's persistence in Find dialog combobox while pressing arrow key.
+12. Make auto-checking of Find InSelection configurable (resizable & can be disabled).
+13. Perl enhancement: Update Stylers & the keywords for Perl v5.38.    
+14. Fix "Single Line Uncomment" uncommenting an extra line issue.
+15. Fix "Next Bookmark" command not resetting current column issue.
+16. Allow menu command Window->Windows to be assigned a shortcut. 
+17. Fix wrong categories in Shortcuts Mapper.
+
+
+Get more info on
+https://notepad-plus-plus.org/downloads/v8.5.8/
+
+
+Included plugins:
+
+1.  NppExport v0.4
+2.  Converter v4.5
+3.  Mime Tool v2.9
+
+
+Updater (Installer only):
+
+* WinGup (for Notepad++) v5.2.6
