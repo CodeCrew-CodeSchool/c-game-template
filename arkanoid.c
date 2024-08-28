@@ -25,9 +25,9 @@
 //----------------------------------------------------------------------------------
 // Some Defines
 //----------------------------------------------------------------------------------
-#define PLAYER_MAX_LIFE         5
-#define LINES_OF_BRICKS         5
-#define BRICKS_PER_LINE        20
+#define PLAYER_MAX_LIFE         3
+#define LINES_OF_BRICKS         4
+#define BRICKS_PER_LINE        12
 
 //----------------------------------------------------------------------------------
 // Types and Structures Definition
@@ -50,6 +50,18 @@ typedef struct Brick {
     bool active;
 } Brick;
 
+/* struct PowerUp {
+    Vector2 position;
+    Vector2 speed;
+    bool active;
+    int timeLimit;
+    Power
+}
+*/
+
+/*
+enum Powers { BarShrink, BarGrow, FastBall, SlowBall, Shoot, Safety, MultiBall }
+*/
 //------------------------------------------------------------------------------------
 // Global Variables Declaration
 //------------------------------------------------------------------------------------
@@ -116,7 +128,7 @@ int main(void)
 // Initialize game variables
 void InitGame(void)
 {
-    brickSize = (Vector2){ GetScreenWidth()/BRICKS_PER_LINE, 40 };
+    brickSize = (Vector2){ GetScreenWidth() /BRICKS_PER_LINE, 40 };
 
     // Initialize player
     player.position = (Vector2){ screenWidth/2, screenHeight*7/8 };
@@ -126,7 +138,7 @@ void InitGame(void)
     // Initialize ball
     ball.position = (Vector2){ screenWidth/2, screenHeight*7/8 - 30 };
     ball.speed = (Vector2){ 0, 0 };
-    ball.radius = 7;
+    ball.radius = 14;
     ball.active = false;
 
     // Initialize bricks
@@ -136,7 +148,7 @@ void InitGame(void)
     {
         for (int j = 0; j < BRICKS_PER_LINE; j++)
         {
-            brick[i][j].position = (Vector2){ j*brickSize.x + brickSize.x/2, i*brickSize.y + initialDownPosition };
+            brick[i][j].position = (Vector2){ j*brickSize.x + brickSize.x, i*brickSize.y + initialDownPosition };
             brick[i][j].active = true;
         }
     }
@@ -147,15 +159,20 @@ void UpdateGame(void)
 {
     if (!gameOver)
     {
-        if (IsKeyPressed('P')) pause = !pause;
+        if (IsKeyPressed('P')) 
+            pause = !pause;
 
         if (!pause)
         {
             // Player movement logic
-            if (IsKeyDown(KEY_LEFT)) player.position.x -= 5;
-            if ((player.position.x - player.size.x/2) <= 0) player.position.x = player.size.x/2;
-            if (IsKeyDown(KEY_RIGHT)) player.position.x += 5;
-            if ((player.position.x + player.size.x/2) >= screenWidth) player.position.x = screenWidth - player.size.x/2;
+            if (IsKeyDown(KEY_LEFT))
+                player.position.x -= 5;
+            if ((player.position.x - player.size.x/2) <= 0) 
+                player.position.x = player.size.x/2;
+            if (IsKeyDown(KEY_RIGHT)) 
+                player.position.x += 5;
+            if ((player.position.x + player.size.x/2) >= screenWidth) 
+                player.position.x = screenWidth - player.size.x/2;
 
             // Ball launching logic
             if (!ball.active)
@@ -179,8 +196,10 @@ void UpdateGame(void)
             }
 
             // Collision logic: ball vs walls
-            if (((ball.position.x + ball.radius) >= screenWidth) || ((ball.position.x - ball.radius) <= 0)) ball.speed.x *= -1;
-            if ((ball.position.y - ball.radius) <= 0) ball.speed.y *= -1;
+            if (((ball.position.x + ball.radius) >= screenWidth) || ((ball.position.x - ball.radius) <= 0))
+             ball.speed.x *= -1;
+            if ((ball.position.y - ball.radius) <= 0) 
+                ball.speed.y *= -1;
             if ((ball.position.y + ball.radius) >= screenHeight)
             {
                 ball.speed = (Vector2){ 0, 0 };
@@ -244,7 +263,8 @@ void UpdateGame(void)
             }
 
             // Game over logic
-            if (player.life <= 0) gameOver = true;
+            if (player.life <= 0) 
+                gameOver = true;
             else
             {
                 gameOver = true;
@@ -282,10 +302,11 @@ void DrawGame(void)
             DrawRectangle(player.position.x - player.size.x/2, player.position.y - player.size.y/2, player.size.x, player.size.y, BLACK);
 
             // Draw player lives
-            for (int i = 0; i < player.life; i++) DrawRectangle(20 + 40*i, screenHeight - 30, 35, 10, LIGHTGRAY);
+            for (int i = 0; i < player.life; i++) 
+                DrawRectangle(20 + 40*i, screenHeight - 30, 35, 10, LIGHTGRAY);
 
             // Draw ball
-            DrawCircleV(ball.position, ball.radius, MAROON);
+            DrawCircleV(ball.position, ball.radius, BLUE);
 
             // Draw bricks
             for (int i = 0; i < LINES_OF_BRICKS; i++)
@@ -294,13 +315,16 @@ void DrawGame(void)
                 {
                     if (brick[i][j].active)
                     {
-                        if ((i + j) % 2 == 0) DrawRectangle(brick[i][j].position.x - brickSize.x/2, brick[i][j].position.y - brickSize.y/2, brickSize.x, brickSize.y, GRAY);
-                        else DrawRectangle(brick[i][j].position.x - brickSize.x/2, brick[i][j].position.y - brickSize.y/2, brickSize.x, brickSize.y, DARKGRAY);
+                        if ((i + j) % 2 == 0) 
+                        DrawRectangle(brick[i][j].position.x - brickSize.x/2, brick[i][j].position.y - brickSize.y/2, brickSize.x, brickSize.y, GRAY);
+                        else 
+                        DrawRectangle(brick[i][j].position.x - brickSize.x/2, brick[i][j].position.y - brickSize.y/2, brickSize.x, brickSize.y, DARKGRAY);
                     }
                 }
             }
 
-            if (pause) DrawText("GAME PAUSED", screenWidth/2 - MeasureText("GAME PAUSED", 40)/2, screenHeight/2 - 40, 40, GRAY);
+            if (pause) 
+            DrawText("GAME PAUSED", screenWidth/2 - MeasureText("GAME PAUSED", 40)/2, screenHeight/2 - 40, 40, GRAY);
         }
         else DrawText("PRESS [ENTER] TO PLAY AGAIN", GetScreenWidth()/2 - MeasureText("PRESS [ENTER] TO PLAY AGAIN", 20)/2, GetScreenHeight()/2 - 50, 20, GRAY);
 
@@ -311,6 +335,7 @@ void DrawGame(void)
 void UnloadGame(void)
 {
     // TODO: Unload all dynamic loaded data (textures, sounds, models...)
+
 }
 
 // Update and Draw (one frame)

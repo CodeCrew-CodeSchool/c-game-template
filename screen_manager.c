@@ -1,47 +1,21 @@
 /*******************************************************************************************
 *
-*   raylib [core] example - 2D Camera platformer
+*   raylib [core] examples - basic screen manager
 *
-*   Example originally created with raylib 2.5, last time updated with raylib 3.0
+*   NOTE: This example illustrates a very simple screen manager based on a states machines
 *
-*   Example contributed by arvyy (@arvyy) and reviewed by Ramon Santamaria (@raysan5)
+*   Example originally created with raylib 4.0, last time updated with raylib 4.0
 *
 *   Example licensed under an unmodified zlib/libpng license, which is an OSI-certified,
 *   BSD-like license that allows static linking with closed source software
 *
-*   Copyright (c) 2019-2024 arvyy (@arvyy)
+*   Copyright (c) 2021-2024 Ramon Santamaria (@raysan5)
 *
 ********************************************************************************************/
-//DONE
-//jump kinda works
-
-//TODO
-//main - loads screenmanager -> loads each platform level
-//bitcoin power icon in corner
-//map as 0,1 tileset
-//tile convert rendering
-//keep camera
-//settle on camera mode
-//1 good level
-//random level generation?
-//emscripten tutorial
-//make inscription
-//submit buidl
-
-//IDEA
-//Enemy is an Shady Organization - Robots - Eagles, Soldiers, CorporateSuits, MegaEagleRobotInSuitWithGavel
-//level 1 White - seemingly plain, deceptively evil. coerced the world. lift the veil - Eagle Bots
-//Blue - seemingly peaceful, actually forceful. must be stopped - CorporateSuits
-//Red - bloody violent, absolute power. How can we overcome it? - Soldiers
-//Green - Final boss, the one to rule them all. infinite slavery - MegaEagleRoboSuitWithGavel
-
-//Player 
-//Orange - You, the hero, the difference. Orange Pill the world
 
 #include "raylib.h"
-#include "raymath.h"
-#include <stdio.h>
-// #include "string.h"
+#include "math.h"
+
 
 //#define PLATFORM_WEB
 #if defined(PLATFORM_WEB)
@@ -50,8 +24,6 @@
 
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #define MAX(a,b) (((a)>(b))?(a):(b))
-
-//platfomer tile collision config
 
 bool PLATFORMER = true; // toggle to top-down movement with TAB
 
@@ -73,13 +45,10 @@ typedef struct{
     int size;
 }RectList;
 
-typedef enum GameScreen { LOGO = 0, TITLE, LVL1, LVL2, LVL3, LVL4, ENDING, GAMEOVER } GameScreen;
-GameScreen currentScreen = LOGO;
-bool nextLevel = false;
-int framesCounter = 0; 
-
-//method declarations
 void GameInit();
+void L2Init();
+void L3Init();
+void L4Init();
 void GameUpdate();
 void GameDraw();
 void GameLoop(){GameUpdate(); GameDraw();}
@@ -95,13 +64,11 @@ void UpdateScreen();
 void UpdatePlayer();
 void UpdateCoin();
 
-//collision methods
 void        RectangleCollisionUpdate(Rectangle *rect, Vector2 *velocity);
 Rectangle   RectangleResize(Rectangle *rect, Vector2 *size);
 RectList*   RectangleListFromTiles(Rectangle *rect, Grid *grid);
 void        RectangleTileCollision(Rectangle *rect, Vector2 *velocity, RectList *list);
 
-//map rendering config. would like to array/enumify this to reuse the variables and make shift levels simpler
 #define MAP_W 45
 #define MAP_H 12
 int screenWidth = 32*MAP_W;
@@ -112,15 +79,13 @@ RenderTexture viewport;
 int scale = 1;
 Vector2 vpOffset = (Vector2){0.0f, 0.0f};
 
-Rectangle player = {32.0f * 2, 32.0f * 8, 32.0f, 32.0f}; //what are the rectangle components?
+Rectangle player = {32.0f * 2, 32.0f * 8, 32.0f, 32.0f};
 
-
-#define COIN_COUNT 21
+#define COIN_COUNT 10
 Rectangle coins[COIN_COUNT] = {0};
 bool visible[COIN_COUNT] = {0};
 int points = 0;
 int time = 0;       // For animation
-
 
 Grid map;
 int tiles1[] = {
@@ -179,8 +144,154 @@ int tiles4[] = {
 1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
 };
+//------------------------------------------------------------------------------------------
+// Types and Structures Definition
+//------------------------------------------------------------------------------------------
+typedef enum GameScreen { LOGO = 0, TITLE, LVL1, LVL2, LVL3, LVL4, ENDING, GAMEOVER } GameScreen;
 
-//Game Methods
+//------------------------------------------------------------------------------------
+// Program main entry point
+//------------------------------------------------------------------------------------
+int main(void)
+{
+    // Initialization
+    //--------------------------------------------------------------------------------------
+    const int screenWidth = 800;
+    const int screenHeight = 450;
+
+    InitWindow(screenWidth, screenHeight, "raylib [core] example - basic screen manager");
+
+    GameScreen currentScreen = LOGO;
+
+    // TODO: Initialize all required variables and load all required data here!
+
+    int framesCounter = 0;          // Useful to count frames
+
+    #if defined(PLATFORM_WEB)
+        emscripten_set_main_loop(GameLoop, 0, 1);
+    #else
+
+    SetTargetFPS(60);               // Set desired framerate (frames-per-second)
+    //--------------------------------------------------------------------------------------
+
+    // Main game loop
+    while (!WindowShouldClose())    // Detect window close button or ESC key
+    {
+        // Update
+        //----------------------------------------------------------------------------------
+        switch(currentScreen)
+        {
+            case LOGO:
+            {
+                // TODO: Update LOGO screen variables here!
+
+                framesCounter++;    // Count frames
+
+                // Wait for 2 seconds (120 frames) before jumping to TITLE screen
+                if (framesCounter > 120)
+                {
+                    currentScreen = TITLE;
+                }
+            } break;
+            case TITLE:
+            {
+                // TODO: Update TITLE screen variables here!
+
+                // Press enter to change to GAMEPLAY screen
+                if (IsKeyPressed(KEY_ENTER) || IsGestureDetected(GESTURE_TAP))
+                {
+                    GameInit();
+                    currentScreen = LVL1;
+                }
+            } break;
+            case LVL1:
+            {
+                // TODO: Update GAMEPLAY screen variables here!
+
+                GameUpdate();
+                if (nextLevel == true)
+                {
+                    currentScreen = LVL2;
+                }
+                // Press enter to change to ENDING screen
+                // if (IsKeyPressed(KEY_ENTER) || IsGestureDetected(GESTURE_TAP))
+                // {
+                //     currentScreen = ENDING;
+                // }
+            } break;
+            case ENDING:
+            {
+                // TODO: Update ENDING screen variables here!
+
+                // Press enter to return to TITLE screen
+                if (IsKeyPressed(KEY_ENTER) || IsGestureDetected(GESTURE_TAP))
+                {
+                    currentScreen = TITLE;
+                }
+            } break;
+            default: break;
+        }
+        //----------------------------------------------------------------------------------
+
+        // Draw
+        //----------------------------------------------------------------------------------
+        BeginDrawing();
+
+            ClearBackground(RAYWHITE);
+
+            switch(currentScreen)
+            {
+                case LOGO:
+                {
+                    // TODO: Draw LOGO screen here!
+                    DrawText("LOGO SCREEN", 20, 20, 40, LIGHTGRAY);
+                    DrawText("WAIT for 2 SECONDS...", 290, 220, 20, GRAY);
+
+                } break;
+                case TITLE:
+                {
+                    // TODO: Draw TITLE screen here!
+                    DrawRectangle(0, 0, screenWidth, screenHeight, GREEN);
+                    DrawText("TITLE SCREEN", 20, 20, 40, DARKGREEN);
+                    DrawText("PRESS ENTER or TAP to JUMP to GAMEPLAY SCREEN", 120, 220, 20, DARKGREEN);
+
+                } break;
+                case LVL1:
+                {
+                    // TODO: Draw GAMEPLAY screen here!
+                    GameDraw();
+                    // DrawRectangle(0, 0, screenWidth, screenHeight, PURPLE);
+                    // DrawText("GAMEPLAY SCREEN", 20, 20, 40, MAROON);
+                    // DrawText("PRESS ENTER or TAP to JUMP to ENDING SCREEN", 130, 220, 20, MAROON);
+
+                } break;
+                case ENDING:
+                {
+                    // TODO: Draw ENDING screen here!
+                    DrawRectangle(0, 0, screenWidth, screenHeight, BLUE);
+                    DrawText("ENDING SCREEN", 20, 20, 40, DARKBLUE);
+                    DrawText("PRESS ENTER or TAP to RETURN to TITLE SCREEN", 120, 220, 20, DARKBLUE);
+
+                } break;
+                default: break;
+            }
+
+        EndDrawing();
+        //----------------------------------------------------------------------------------
+    }
+
+    UnloadRenderTexture(viewport);
+    #endif
+    // De-Initialization
+    //--------------------------------------------------------------------------------------
+
+    // TODO: Unload all loaded data (textures, fonts, audio) here!
+
+    CloseWindow();        // Close window and OpenGL context
+    //--------------------------------------------------------------------------------------
+
+    return 0;
+}
 
 void GameInit() {
     //SetConfigFlags(FLAG_WINDOW_RESIZABLE);
@@ -192,45 +303,6 @@ void GameInit() {
     map.h = MAP_H;
     map.s = 32;
     map.cell = tiles1;
-    Reset();
-}
-void Lvl2Init() {
-    //SetConfigFlags(FLAG_WINDOW_RESIZABLE);
-    //InitWindow(screenWidth, screenHeight, "classic game: platformer");
-    nextLevel = false;
-    viewport = LoadRenderTexture(gameWidth, gameHeight);
-    map.x = 0.0f;
-    map.y = 0.0f;
-    map.w = MAP_W;
-    map.h = MAP_H;
-    map.s = 32;
-    map.cell = tiles2;
-    Reset();
-}
-void Lvl3Init() {
-    //SetConfigFlags(FLAG_WINDOW_RESIZABLE);
-    //InitWindow(screenWidth, screenHeight, "classic game: platformer");
-    nextLevel = false;
-    viewport = LoadRenderTexture(gameWidth, gameHeight);
-    map.x = 0.0f;
-    map.y = 0.0f;
-    map.w = MAP_W;
-    map.h = MAP_H;
-    map.s = 32;
-    map.cell = tiles3;
-    Reset();
-}
-void Lvl4Init() {
-    //SetConfigFlags(FLAG_WINDOW_RESIZABLE);
-    //InitWindow(screenWidth, screenHeight, "classic game: platformer");
-    nextLevel = false;
-    viewport = LoadRenderTexture(gameWidth, gameHeight);
-    map.x = 0.0f;
-    map.y = 0.0f;
-    map.w = MAP_W;
-    map.h = MAP_H;
-    map.s = 32;
-    map.cell = tiles4;
     Reset();
 }
 
@@ -254,32 +326,13 @@ void Reset(){
     for (int i = 0; i < COIN_COUNT; i++){visible[i] = true;}
 }
 
-//may have to call the update methods separately to work with the screen manager
 void GameUpdate(){
     
     UpdateScreen();// Adapt to resolution
     UpdatePlayer();
     UpdateCoin();
-    //UpdateCamera(camera, player);
 }
 
-//Update Methods
-/*void UpdateCamera(camera, player) {
-    float deltaTime = GetFrameTime();
-        camera.zoom += ((float)GetMouseWheelMove()*0.05f);
-
-        if (camera.zoom > 3.0f) camera.zoom = 3.0f;
-        else if (camera.zoom < 0.25f) camera.zoom = 0.25f;
-
-        if (IsKeyPressed(KEY_R))
-        {
-            camera.zoom = 1.0f;
-            player.position = (Vector2){ 400, 280 };
-        }
-
-        // Call update camera function by its pointer
-        //cameraUpdaters[cameraOption](&camera, &player, envItems, envItemsLength, deltaTime, screenWidth, screenHeight);
-}*/
 void UpdateScreen(){
     // Adapt to resolution
     if (IsWindowResized()){
@@ -380,48 +433,6 @@ void UpdateCoin(){
     }
 }
 
-//Draw Methods
-void ScreenManagerDraw() {
-    ClearBackground(RAYWHITE);
-
-            switch(currentScreen)
-            {
-                case LOGO:
-                {
-                    // TODO: Draw LOGO screen here!
-                    DrawText("LOGO SCREEN", 20, 20, 40, LIGHTGRAY);
-                    DrawText("WAIT for 2 SECONDS...", 290, 220, 20, GRAY);
-
-                } break;
-                case TITLE:
-                {
-                    // TODO: Draw TITLE screen here!
-                    DrawRectangle(0, 0, screenWidth, screenHeight, GREEN);
-                    DrawText("TITLE SCREEN", 20, 20, 40, DARKGREEN);
-                    DrawText("PRESS ENTER or TAP to JUMP to GAMEPLAY SCREEN", 120, 220, 20, DARKGREEN);
-
-                } break;
-                case LVL1:
-                {
-                    // TODO: Draw GAMEPLAY screen here!
-                    GameDraw();
-                    // DrawRectangle(0, 0, screenWidth, screenHeight, PURPLE);
-                    // DrawText("GAMEPLAY SCREEN", 20, 20, 40, MAROON);
-                    // DrawText("PRESS ENTER or TAP to JUMP to ENDING SCREEN", 130, 220, 20, MAROON);
-
-                } break;
-                case ENDING:
-                {
-                    // TODO: Draw ENDING screen here!
-                    DrawRectangle(0, 0, screenWidth, screenHeight, BLUE);
-                    DrawText("ENDING SCREEN", 20, 20, 40, DARKBLUE);
-                    DrawText("PRESS ENTER or TAP to RETURN to TITLE SCREEN", 120, 220, 20, DARKBLUE);
-
-                } break;
-                default: break;
-            }
-}
-
 void GameDraw(){
     // Viewport scaling
     const Vector2 origin = (Vector2){0.0f, 0.0f};
@@ -439,10 +450,10 @@ void GameDraw(){
     EndTextureMode();
     
     // Draw the viewport
-    //BeginDrawing();
+    // BeginDrawing();
         ClearBackground(BLACK);
         DrawTexturePro(viewport.texture, vp_r, out_r, origin, 0.0f, WHITE);
-    //EndDrawing();
+    // EndDrawing();
 }
 
 void DrawTileMap(){
@@ -514,6 +525,7 @@ void DrawScoreText(){
     const char *text;
     if (points == COIN_COUNT){
         text = TextFormat("Pres 'ENTER' to restart!");
+        nextLevel = true;
     }
     else{
         text = TextFormat("Score: %d", points);
@@ -528,7 +540,6 @@ void DrawScoreText(){
     
 }
 
-//collision methods
 void RectangleCollisionUpdate(Rectangle *rect, Vector2 *velocity){
     Rectangle colArea = RectangleResize(rect, velocity);
     RectList *tiles = RectangleListFromTiles(&colArea, &map);
@@ -635,314 +646,3 @@ void RectangleTileCollision(Rectangle *rect, Vector2 *velocity, RectList *list){
     
     rect->y += velocity->y;
 }
-
-
-#define G 800
-#define PLAYER_JUMP_SPD 400.0f
-#define PLAYER_HOR_SPD 200.0f
-
-typedef struct Player {
-    Vector2 position;
-    float speed;
-    bool canJump;
-} Player;
-
-typedef struct EnvItem {
-    Rectangle rect;
-    int blocking;
-    Color color;
-    int isWall;
-} EnvItem;
-
-// typedef struct Wall {
-
-// } Wall;
-
-//----------------------------------------------------------------------------------
-// Module functions declaration
-//----------------------------------------------------------------------------------
-//void UpdatePlayer(Player *player, EnvItem *envItems, int envItemsLength, float delta);
-void UpdateCameraCenterInsideMap(Camera2D *camera, Player *player, EnvItem *envItems, int envItemsLength, float delta, int width, int height);
-
-//------------------------------------------------------------------------------------
-// Program main entry point
-//------------------------------------------------------------------------------------
-int main(void)
-{
-    // Initialization
-    //--------------------------------------------------------------------------------------
-    const int screenWidth = 800;
-    const int screenHeight = 450;
-
-    InitWindow(screenWidth, screenHeight, "BFT");
-
-    Player player = { 0 };
-    player.position = (Vector2){ 400, 280 };
-    player.speed = 0;
-    player.canJump = false;
-    EnvItem envItems[] = {
-        {{ 0, 0, 2000, 1000 }, 0, RAYWHITE, 0 }, //backdrop
-        {{ 0, 400, 1020, 200 }, 1, YELLOW, 0 }, //ground
-        // {{ 300, 200, 400, 10 }, 1, BLUE, 0 }, // top platform
-        // {{ 250, 300, 100, 10 }, 1, GREEN, 0 }, // left platform
-        // {{ 650, 300, 100, 10 }, 1, RED, 0 }, // right platform
-        // {{ 600, 100, 50, 300}, 1, BLACK, 1 }
-    };
-
-    int envItemsLength = sizeof(envItems)/sizeof(envItems[0]);
-
-    Camera2D camera = { 0 };
-    camera.target = player.position;
-    camera.offset = (Vector2){ screenWidth/2.0f, screenHeight/2.0f };
-    camera.rotation = 0.0f;
-    camera.zoom = 1.0f;
-
-    // Store pointers to the multiple update camera functions
-    void (*cameraUpdaters[])(Camera2D*, Player*, EnvItem*, int, float, int, int) = {
-        UpdateCameraCenterInsideMap
-    };
-
-    int cameraOption = 0;
-
-    SetTargetFPS(60);
-    //--------------------------------------------------------------------------------------
-
-    // Main game loop
-    while (!WindowShouldClose())
-    {
-        // Update
-        //----------------------------------------------------------------------------------
-        //screenmanager switch
-        ScreenManagerUpdate();
-        float deltaTime = GetFrameTime();
-        camera.zoom += ((float)GetMouseWheelMove()*0.05f);
-
-        if (camera.zoom > 3.0f) camera.zoom = 3.0f;
-        else if (camera.zoom < 0.25f) camera.zoom = 0.25f;
-
-        if (IsKeyPressed(KEY_R))
-        {
-            camera.zoom = 1.0f;
-            player.position = (Vector2){ 400, 280 };
-        }
-        UpdateCameraCenterInsideMap(&camera, &player, envItems, envItemsLength, deltaTime, screenWidth, screenHeight);
-        //platformer logic below
-        //UpdatePlayer(&player, envItems, envItemsLength, deltaTime);
-        
-        //----------------------------------------------------------------------------------
-
-        // Draw
-        //----------------------------------------------------------------------------------
-        BeginDrawing();
-
-            ClearBackground(LIGHTGRAY);
-
-            BeginMode2D(camera);
-
-                for (int i = 0; i < envItemsLength; i++) DrawRectangleRec(envItems[i].rect, envItems[i].color);
-
-                ScreenManagerDraw();
-                /*
-                old player logic
-                Rectangle playerRect = { player.position.x - 20, player.position.y - 40, 40.0f, 40.0f };
-                DrawRectangleRec(playerRect, RED);
-                
-                DrawCircleV(player.position, 5.0f, GOLD);*/
-
-            EndMode2D();
-
-            DrawText("Controls:", 20, 20, 10, DARKGRAY);
-            DrawText("- Right/Left to move", 40, 40, 10, DARKGRAY);
-            DrawText("- Space to jump", 40, 60, 10, DARKGRAY);
-            DrawText("- Mouse Wheel to Zoom in-out, R to reset zoom", 40, 80, 10, DARKGRAY);
-            
-            char playerPosText[20];// = "Player X: &s" + player.position.x;
-            sprintf(playerPosText, "Player X: %.2f, Player Y: %.2f", player.position.x, player.position.y);
-            DrawText(playerPosText, 20, 160, 10, BLACK);
-
-        EndDrawing();
-        //----------------------------------------------------------------------------------
-    }
-
-    // De-Initialization
-    //--------------------------------------------------------------------------------------
-    CloseWindow();        // Close window and OpenGL context
-    //--------------------------------------------------------------------------------------
-
-    return 0;
-}
-
-void ScreenManagerUpdate(){
-    switch(currentScreen)
-        {
-            case LOGO:
-            {
-                // TODO: Update LOGO screen variables here!
-
-                framesCounter++;    // Count frames
-
-                // Wait for 2 seconds (120 frames) before jumping to TITLE screen
-                if (framesCounter > 120)
-                {
-                    currentScreen = TITLE;
-                }
-            } break;
-            case TITLE:
-            {
-                // TODO: Update TITLE screen variables here!
-
-                // Press enter to change to GAMEPLAY screen
-                if (IsKeyPressed(KEY_ENTER) || IsGestureDetected(GESTURE_TAP))
-                {
-                    GameInit();
-                    currentScreen = LVL1;
-                }
-            } break;
-            case LVL1:
-            {
-                // TODO: Update GAMEPLAY screen variables here!
-
-                GameUpdate();
-                if (nextLevel == true)
-                {
-                    currentScreen = LVL2;
-                }
-                // Press enter to change to ENDING screen
-                // if (IsKeyPressed(KEY_ENTER) || IsGestureDetected(GESTURE_TAP))
-                // {
-                //     currentScreen = ENDING;
-                // }
-            } break;
-            case LVL2:
-            {
-                GameUpdate();
-                if (nextLevel == true)
-                {
-                    currentScreen = LVL3;
-                }
-            } break;
-            case LVL3:
-            {
-                GameUpdate();
-                if (nextLevel == true)
-                {
-                    currentScreen = LVL4;
-                }
-            } break;
-            case LVL4:
-            {   
-                GameUpdate();
-                if (nextLevel == true)
-                {
-                    currentScreen = ENDING;
-                }
-
-            } break;
-            case ENDING:
-            {
-                // TODO: Update ENDING screen variables here!
-
-                // Press enter to return to TITLE screen
-                if (IsKeyPressed(KEY_ENTER) || IsGestureDetected(GESTURE_TAP))
-                {
-                    currentScreen = TITLE;
-                }
-            } break;
-            default: break;
-        }
-}
-
-/*void UpdatePlayer(Player *player, EnvItem *envItems, int envItemsLength, float delta)
-{
-    if (IsKeyDown(KEY_LEFT)) player->position.x -= PLAYER_HOR_SPD*delta;
-    if (IsKeyDown(KEY_RIGHT)) player->position.x += PLAYER_HOR_SPD*delta;
-    if (IsKeyDown(KEY_SPACE) && player->canJump)
-    {
-        //add instead of shift?
-        player->speed = -PLAYER_JUMP_SPD;
-        player->canJump = false;
-    }
-
-    bool hitObstacle = false;
-    for (int i = 0; i < envItemsLength; i++)
-    {
-        EnvItem *ei = envItems + i;
-        Vector2 *p = &(player->position);
-        if (ei->blocking &&
-            ei->rect.x <= p->x &&
-            ei->rect.x + ei->rect.width >= p->x &&
-            ei->rect.y >= p->y &&
-            ei->rect.y <= p->y + player->speed*delta)
-        {
-            hitObstacle = true;
-            player->speed = 0.0f;
-            p->y = ei->rect.y;
-            break;
-        }
-        if (ei->isWall == 1) {
-             if (ei->blocking){
-                //player is to the left of left side of wall
-                if (ei->rect.x >= p->x) {
-                    if (ei->rect.y >= p->y) {
-                        //player is on floor with or above wall
-                        if (ei->rect.y + ei->rect.height <= p->y) {
-                            //player isn't above wall
-                            //prevent player from moving forward
-                            p->x = ei->rect.x - 10;
-                            hitObstacle = true;
-                            break;
-                        }
-                    }
-                }
-                //player is right of wall
-                if (ei->rect.x + ei->rect.width <= p->x) {
-                    if (ei->rect.y >= p->y) {
-                        //player is on floor with or above wall
-                        if (ei->rect.y + ei->rect.height <= p->y) {
-                            //player isn't above wall
-                            //prevent player from moving backward
-                            p->x = ei->rect.x + ei->rect.width + 10;
-                            hitObstacle = true;
-                            break;
-                        }
-                    }
-                }
-             } 
-            
-            }
-    }
-
-    if (!hitObstacle)
-    {
-        player->position.y += player->speed*delta;
-        player->speed += G*delta;
-        // if (player->position.y > 1900) hitObstacle = true;
-        player->canJump = false;
-    }
-    else player->canJump = true;
-}*/
-
-void UpdateCameraCenterInsideMap(Camera2D *camera, Player *player, EnvItem *envItems, int envItemsLength, float delta, int width, int height)
-{
-    camera->target = player->position;
-    camera->offset = (Vector2){ width/2.0f, height/2.0f };
-    float minX = 1000, minY = 1000, maxX = -1000, maxY = -1000;
-
-    for (int i = 0; i < envItemsLength; i++)
-    {
-        EnvItem *ei = envItems + i;
-        minX = fminf(ei->rect.x, minX);
-        maxX = fmaxf(ei->rect.x + ei->rect.width, maxX);
-        minY = fminf(ei->rect.y, minY);
-        maxY = fmaxf(ei->rect.y + ei->rect.height, maxY);
-    }
-
-    Vector2 max = GetWorldToScreen2D((Vector2){ maxX, maxY }, *camera);
-    Vector2 min = GetWorldToScreen2D((Vector2){ minX, minY }, *camera);
-
-    if (max.x < width) camera->offset.x = width - (max.x - width/2);
-    if (max.y < height) camera->offset.y = height - (max.y - height/2);
-    if (min.x > 0) camera->offset.x = width/2 - min.x;
-    if (min.y > 0) camera->offset.y = height/2 - min.y;
-}
-
