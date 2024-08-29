@@ -95,6 +95,9 @@ void UpdateScreen();
 void UpdatePlayer();
 void UpdateCoin();
 
+void UpdateCameraCenterInsideMap(Camera2D *camera, Player *player, EnvItem *envItems, int envItemsLength, float delta, int width, int height);
+
+
 //collision methods
 void        RectangleCollisionUpdate(Rectangle *rect, Vector2 *velocity);
 Rectangle   RectangleResize(Rectangle *rect, Vector2 *size);
@@ -121,6 +124,33 @@ bool visible[COIN_COUNT] = {0};
 int points = 0;
 int time = 0;       // For animation
 
+#define G 800
+#define PLAYER_JUMP_SPD 400.0f
+#define PLAYER_HOR_SPD 200.0f
+
+typedef struct Player {
+    Vector2 position;
+    float speed;
+    bool canJump;
+} Player;
+
+typedef struct EnvItem {
+    Rectangle rect;
+    int blocking;
+    Color color;
+    int isWall;
+} EnvItem;
+
+Camera2D camera = { 0 };
+
+   EnvItem envItems[] = {
+        {{ 0, 0, 2000, 1000 }, 0, RAYWHITE, 0 }, //backdrop
+        {{ 0, 400, 1020, 200 }, 1, YELLOW, 0 }, //ground
+        // {{ 300, 200, 400, 10 }, 1, BLUE, 0 }, // top platform
+        // {{ 250, 300, 100, 10 }, 1, GREEN, 0 }, // left platform
+        // {{ 650, 300, 100, 10 }, 1, RED, 0 }, // right platform
+        // {{ 600, 100, 50, 300}, 1, BLACK, 1 }
+    };
 
 Grid map;
 int tiles1[] = {
@@ -180,6 +210,103 @@ int tiles4[] = {
 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
 };
 
+//------------------------------------------------------------------------------------
+// Program main entry point
+//------------------------------------------------------------------------------------
+int main(void)
+{
+    // Initialization
+    //--------------------------------------------------------------------------------------
+    const int screenWidth = 800;
+    const int screenHeight = 450;
+
+    InitWindow(screenWidth, screenHeight, "BFT - Bitcoin Fixed This");
+
+    // Player player = { 0 };
+    // player.position = (Vector2){ 400, 280 };
+    // player.speed = 0;
+    // player.canJump = false;
+ 
+
+    int envItemsLength = sizeof(envItems)/sizeof(envItems[0]);
+
+    // Store pointers to the multiple update camera functions
+    void (*cameraUpdaters[])(Camera2D*, Player*, EnvItem*, int, float, int, int) = {
+        UpdateCameraCenterInsideMap
+    };
+
+    int cameraOption = 0;
+
+    SetTargetFPS(60);
+    //--------------------------------------------------------------------------------------
+
+    // Main game loop
+    while (!WindowShouldClose())
+    {
+        // Update
+        //----------------------------------------------------------------------------------
+        //screenmanager switch
+        ScreenManagerUpdate();
+        float deltaTime = GetFrameTime();
+        //camera zoom
+        // camera.zoom += ((float)GetMouseWheelMove()*0.05f);
+
+        // if (camera.zoom > 3.0f) camera.zoom = 3.0f;
+        // else if (camera.zoom < 0.25f) camera.zoom = 0.25f;
+
+        // if (IsKeyPressed(KEY_R))
+        // {
+        //     camera.zoom = 1.0f;
+        //     player.position = (Vector2){ 400, 280 };
+        // }
+        UpdateCameraCenterInsideMap(&camera, &player, envItems, envItemsLength, deltaTime, screenWidth, screenHeight);
+        //platformer logic below
+        //UpdatePlayer(&player, envItems, envItemsLength, deltaTime);
+        
+        //----------------------------------------------------------------------------------
+
+        // Draw
+        //----------------------------------------------------------------------------------
+        BeginDrawing();
+
+            ClearBackground(LIGHTGRAY);
+
+            BeginMode2D(camera);
+
+                for (int i = 0; i < envItemsLength; i++) DrawRectangleRec(envItems[i].rect, envItems[i].color);
+
+                ScreenManagerDraw();
+                /*
+                old player logic
+                Rectangle playerRect = { player.position.x - 20, player.position.y - 40, 40.0f, 40.0f };
+                DrawRectangleRec(playerRect, RED);
+                
+                DrawCircleV(player.position, 5.0f, GOLD);*/
+
+            EndMode2D();
+
+            DrawText("Controls:", 20, 20, 10, DARKGRAY);
+            DrawText("- Right/Left to move", 40, 40, 10, DARKGRAY);
+            DrawText("- Space to jump", 40, 60, 10, DARKGRAY);
+            DrawText("- Mouse Wheel to Zoom in-out, R to reset zoom", 40, 80, 10, DARKGRAY);
+            
+            char playerPosText[20];// = "Player X: &s" + player.position.x;
+            sprintf(playerPosText, "Player X: %.2f, Player Y: %.2f", player.x, player.y);
+            DrawText(playerPosText, 20, 160, 10, BLACK);
+
+        EndDrawing();
+        //----------------------------------------------------------------------------------
+    }
+
+    // De-Initialization
+    //--------------------------------------------------------------------------------------
+    CloseWindow();        // Close window and OpenGL context
+    //--------------------------------------------------------------------------------------
+
+    return 0;
+}
+
+
 //Game Methods
 
 void GameInit() {
@@ -192,6 +319,10 @@ void GameInit() {
     map.h = MAP_H;
     map.s = 32;
     map.cell = tiles1;
+    camera.target = (Vector2){player.x, player.y};
+    camera.offset = (Vector2){ screenWidth/2.0f, screenHeight/2.0f };
+    camera.rotation = 0.0f;
+    camera.zoom = 1.0f;
     Reset();
 }
 void Lvl2Init() {
@@ -264,22 +395,87 @@ void GameUpdate(){
 }
 
 //Update Methods
-/*void UpdateCamera(camera, player) {
-    float deltaTime = GetFrameTime();
-        camera.zoom += ((float)GetMouseWheelMove()*0.05f);
-
-        if (camera.zoom > 3.0f) camera.zoom = 3.0f;
-        else if (camera.zoom < 0.25f) camera.zoom = 0.25f;
-
-        if (IsKeyPressed(KEY_R))
+void ScreenManagerUpdate(){
+    switch(currentScreen)
         {
-            camera.zoom = 1.0f;
-            player.position = (Vector2){ 400, 280 };
-        }
+            case LOGO:
+            {
+                // TODO: Update LOGO screen variables here!
 
-        // Call update camera function by its pointer
-        //cameraUpdaters[cameraOption](&camera, &player, envItems, envItemsLength, deltaTime, screenWidth, screenHeight);
-}*/
+                framesCounter++;    // Count frames
+
+                // Wait for 2 seconds (120 frames) before jumping to TITLE screen
+                if (framesCounter > 120)
+                {
+                    currentScreen = TITLE;
+                }
+            } break;
+            case TITLE:
+            {
+                // TODO: Update TITLE screen variables here!
+
+                // Press enter to change to GAMEPLAY screen
+                if (IsKeyPressed(KEY_ENTER) || IsGestureDetected(GESTURE_TAP))
+                {
+                    GameInit();
+                    currentScreen = LVL1;
+                }
+            } break;
+            case LVL1:
+            {
+                // TODO: Update GAMEPLAY screen variables here!
+
+                GameUpdate();
+
+                if (nextLevel == true)
+                {
+                    currentScreen = LVL2;
+                }
+                // Press enter to change to ENDING screen
+                // if (IsKeyPressed(KEY_ENTER) || IsGestureDetected(GESTURE_TAP))
+                // {
+                //     currentScreen = ENDING;
+                // }
+            } break;
+            case LVL2:
+            {
+                GameUpdate();
+                if (nextLevel == true)
+                {
+                    currentScreen = LVL3;
+                }
+            } break;
+            case LVL3:
+            {
+                GameUpdate();
+                if (nextLevel == true)
+                {
+                    currentScreen = LVL4;
+                }
+            } break;
+            case LVL4:
+            {   
+                GameUpdate();
+                if (nextLevel == true)
+                {
+                    currentScreen = ENDING;
+                }
+
+            } break;
+            case ENDING:
+            {
+                // TODO: Update ENDING screen variables here!
+
+                // Press enter to return to TITLE screen
+                if (IsKeyPressed(KEY_ENTER) || IsGestureDetected(GESTURE_TAP))
+                {
+                    currentScreen = TITLE;
+                }
+            } break;
+            default: break;
+        }
+}
+
 void UpdateScreen(){
     // Adapt to resolution
     if (IsWindowResized()){
@@ -380,6 +576,30 @@ void UpdateCoin(){
     }
 }
 
+void UpdateCameraCenterInsideMap(Camera2D *camera, Player *player, EnvItem *envItems, int envItemsLength, float delta, int width, int height)
+{
+    camera->target = player->position;
+    camera->offset = (Vector2){ width/2.0f, height/2.0f };
+    float minX = 1000, minY = 1000, maxX = -1000, maxY = -1000;
+
+    for (int i = 0; i < envItemsLength; i++)
+    {
+        EnvItem *ei = envItems + i;
+        minX = fminf(ei->rect.x, minX);
+        maxX = fmaxf(ei->rect.x + ei->rect.width, maxX);
+        minY = fminf(ei->rect.y, minY);
+        maxY = fmaxf(ei->rect.y + ei->rect.height, maxY);
+    }
+
+    Vector2 max = GetWorldToScreen2D((Vector2){ maxX, maxY }, *camera);
+    Vector2 min = GetWorldToScreen2D((Vector2){ minX, minY }, *camera);
+
+    if (max.x < width) camera->offset.x = width - (max.x - width/2);
+    if (max.y < height) camera->offset.y = height - (max.y - height/2);
+    if (min.x > 0) camera->offset.x = width/2 - min.x;
+    if (min.y > 0) camera->offset.y = height/2 - min.y;
+}
+
 //Draw Methods
 void ScreenManagerDraw() {
     ClearBackground(RAYWHITE);
@@ -389,8 +609,8 @@ void ScreenManagerDraw() {
                 case LOGO:
                 {
                     // TODO: Draw LOGO screen here!
-                    DrawText("LOGO SCREEN", 20, 20, 40, LIGHTGRAY);
-                    DrawText("WAIT for 2 SECONDS...", 290, 220, 20, GRAY);
+                    DrawText("LOGO SCREEN", 20, 20, 40, BLACK);
+                    DrawText("WAIT for 2 SECONDS...", 290, 220, 20, BLACK);
 
                 } break;
                 case TITLE:
@@ -409,6 +629,19 @@ void ScreenManagerDraw() {
                     // DrawText("GAMEPLAY SCREEN", 20, 20, 40, MAROON);
                     // DrawText("PRESS ENTER or TAP to JUMP to ENDING SCREEN", 130, 220, 20, MAROON);
 
+                } break;
+                case LVL2:
+                {
+                    GameDraw();
+                } break;
+                case LVL3:
+                {
+                    GameDraw();
+
+                } break;
+                case LVL4:
+                {
+                    GameDraw();
                 } break;
                 case ENDING:
                 {
@@ -635,314 +868,3 @@ void RectangleTileCollision(Rectangle *rect, Vector2 *velocity, RectList *list){
     
     rect->y += velocity->y;
 }
-
-
-#define G 800
-#define PLAYER_JUMP_SPD 400.0f
-#define PLAYER_HOR_SPD 200.0f
-
-typedef struct Player {
-    Vector2 position;
-    float speed;
-    bool canJump;
-} Player;
-
-typedef struct EnvItem {
-    Rectangle rect;
-    int blocking;
-    Color color;
-    int isWall;
-} EnvItem;
-
-// typedef struct Wall {
-
-// } Wall;
-
-//----------------------------------------------------------------------------------
-// Module functions declaration
-//----------------------------------------------------------------------------------
-//void UpdatePlayer(Player *player, EnvItem *envItems, int envItemsLength, float delta);
-void UpdateCameraCenterInsideMap(Camera2D *camera, Player *player, EnvItem *envItems, int envItemsLength, float delta, int width, int height);
-
-//------------------------------------------------------------------------------------
-// Program main entry point
-//------------------------------------------------------------------------------------
-int main(void)
-{
-    // Initialization
-    //--------------------------------------------------------------------------------------
-    const int screenWidth = 800;
-    const int screenHeight = 450;
-
-    InitWindow(screenWidth, screenHeight, "BFT");
-
-    Player player = { 0 };
-    player.position = (Vector2){ 400, 280 };
-    player.speed = 0;
-    player.canJump = false;
-    EnvItem envItems[] = {
-        {{ 0, 0, 2000, 1000 }, 0, RAYWHITE, 0 }, //backdrop
-        {{ 0, 400, 1020, 200 }, 1, YELLOW, 0 }, //ground
-        // {{ 300, 200, 400, 10 }, 1, BLUE, 0 }, // top platform
-        // {{ 250, 300, 100, 10 }, 1, GREEN, 0 }, // left platform
-        // {{ 650, 300, 100, 10 }, 1, RED, 0 }, // right platform
-        // {{ 600, 100, 50, 300}, 1, BLACK, 1 }
-    };
-
-    int envItemsLength = sizeof(envItems)/sizeof(envItems[0]);
-
-    Camera2D camera = { 0 };
-    camera.target = player.position;
-    camera.offset = (Vector2){ screenWidth/2.0f, screenHeight/2.0f };
-    camera.rotation = 0.0f;
-    camera.zoom = 1.0f;
-
-    // Store pointers to the multiple update camera functions
-    void (*cameraUpdaters[])(Camera2D*, Player*, EnvItem*, int, float, int, int) = {
-        UpdateCameraCenterInsideMap
-    };
-
-    int cameraOption = 0;
-
-    SetTargetFPS(60);
-    //--------------------------------------------------------------------------------------
-
-    // Main game loop
-    while (!WindowShouldClose())
-    {
-        // Update
-        //----------------------------------------------------------------------------------
-        //screenmanager switch
-        ScreenManagerUpdate();
-        float deltaTime = GetFrameTime();
-        camera.zoom += ((float)GetMouseWheelMove()*0.05f);
-
-        if (camera.zoom > 3.0f) camera.zoom = 3.0f;
-        else if (camera.zoom < 0.25f) camera.zoom = 0.25f;
-
-        if (IsKeyPressed(KEY_R))
-        {
-            camera.zoom = 1.0f;
-            player.position = (Vector2){ 400, 280 };
-        }
-        UpdateCameraCenterInsideMap(&camera, &player, envItems, envItemsLength, deltaTime, screenWidth, screenHeight);
-        //platformer logic below
-        //UpdatePlayer(&player, envItems, envItemsLength, deltaTime);
-        
-        //----------------------------------------------------------------------------------
-
-        // Draw
-        //----------------------------------------------------------------------------------
-        BeginDrawing();
-
-            ClearBackground(LIGHTGRAY);
-
-            BeginMode2D(camera);
-
-                for (int i = 0; i < envItemsLength; i++) DrawRectangleRec(envItems[i].rect, envItems[i].color);
-
-                ScreenManagerDraw();
-                /*
-                old player logic
-                Rectangle playerRect = { player.position.x - 20, player.position.y - 40, 40.0f, 40.0f };
-                DrawRectangleRec(playerRect, RED);
-                
-                DrawCircleV(player.position, 5.0f, GOLD);*/
-
-            EndMode2D();
-
-            DrawText("Controls:", 20, 20, 10, DARKGRAY);
-            DrawText("- Right/Left to move", 40, 40, 10, DARKGRAY);
-            DrawText("- Space to jump", 40, 60, 10, DARKGRAY);
-            DrawText("- Mouse Wheel to Zoom in-out, R to reset zoom", 40, 80, 10, DARKGRAY);
-            
-            char playerPosText[20];// = "Player X: &s" + player.position.x;
-            sprintf(playerPosText, "Player X: %.2f, Player Y: %.2f", player.position.x, player.position.y);
-            DrawText(playerPosText, 20, 160, 10, BLACK);
-
-        EndDrawing();
-        //----------------------------------------------------------------------------------
-    }
-
-    // De-Initialization
-    //--------------------------------------------------------------------------------------
-    CloseWindow();        // Close window and OpenGL context
-    //--------------------------------------------------------------------------------------
-
-    return 0;
-}
-
-void ScreenManagerUpdate(){
-    switch(currentScreen)
-        {
-            case LOGO:
-            {
-                // TODO: Update LOGO screen variables here!
-
-                framesCounter++;    // Count frames
-
-                // Wait for 2 seconds (120 frames) before jumping to TITLE screen
-                if (framesCounter > 120)
-                {
-                    currentScreen = TITLE;
-                }
-            } break;
-            case TITLE:
-            {
-                // TODO: Update TITLE screen variables here!
-
-                // Press enter to change to GAMEPLAY screen
-                if (IsKeyPressed(KEY_ENTER) || IsGestureDetected(GESTURE_TAP))
-                {
-                    GameInit();
-                    currentScreen = LVL1;
-                }
-            } break;
-            case LVL1:
-            {
-                // TODO: Update GAMEPLAY screen variables here!
-
-                GameUpdate();
-                if (nextLevel == true)
-                {
-                    currentScreen = LVL2;
-                }
-                // Press enter to change to ENDING screen
-                // if (IsKeyPressed(KEY_ENTER) || IsGestureDetected(GESTURE_TAP))
-                // {
-                //     currentScreen = ENDING;
-                // }
-            } break;
-            case LVL2:
-            {
-                GameUpdate();
-                if (nextLevel == true)
-                {
-                    currentScreen = LVL3;
-                }
-            } break;
-            case LVL3:
-            {
-                GameUpdate();
-                if (nextLevel == true)
-                {
-                    currentScreen = LVL4;
-                }
-            } break;
-            case LVL4:
-            {   
-                GameUpdate();
-                if (nextLevel == true)
-                {
-                    currentScreen = ENDING;
-                }
-
-            } break;
-            case ENDING:
-            {
-                // TODO: Update ENDING screen variables here!
-
-                // Press enter to return to TITLE screen
-                if (IsKeyPressed(KEY_ENTER) || IsGestureDetected(GESTURE_TAP))
-                {
-                    currentScreen = TITLE;
-                }
-            } break;
-            default: break;
-        }
-}
-
-/*void UpdatePlayer(Player *player, EnvItem *envItems, int envItemsLength, float delta)
-{
-    if (IsKeyDown(KEY_LEFT)) player->position.x -= PLAYER_HOR_SPD*delta;
-    if (IsKeyDown(KEY_RIGHT)) player->position.x += PLAYER_HOR_SPD*delta;
-    if (IsKeyDown(KEY_SPACE) && player->canJump)
-    {
-        //add instead of shift?
-        player->speed = -PLAYER_JUMP_SPD;
-        player->canJump = false;
-    }
-
-    bool hitObstacle = false;
-    for (int i = 0; i < envItemsLength; i++)
-    {
-        EnvItem *ei = envItems + i;
-        Vector2 *p = &(player->position);
-        if (ei->blocking &&
-            ei->rect.x <= p->x &&
-            ei->rect.x + ei->rect.width >= p->x &&
-            ei->rect.y >= p->y &&
-            ei->rect.y <= p->y + player->speed*delta)
-        {
-            hitObstacle = true;
-            player->speed = 0.0f;
-            p->y = ei->rect.y;
-            break;
-        }
-        if (ei->isWall == 1) {
-             if (ei->blocking){
-                //player is to the left of left side of wall
-                if (ei->rect.x >= p->x) {
-                    if (ei->rect.y >= p->y) {
-                        //player is on floor with or above wall
-                        if (ei->rect.y + ei->rect.height <= p->y) {
-                            //player isn't above wall
-                            //prevent player from moving forward
-                            p->x = ei->rect.x - 10;
-                            hitObstacle = true;
-                            break;
-                        }
-                    }
-                }
-                //player is right of wall
-                if (ei->rect.x + ei->rect.width <= p->x) {
-                    if (ei->rect.y >= p->y) {
-                        //player is on floor with or above wall
-                        if (ei->rect.y + ei->rect.height <= p->y) {
-                            //player isn't above wall
-                            //prevent player from moving backward
-                            p->x = ei->rect.x + ei->rect.width + 10;
-                            hitObstacle = true;
-                            break;
-                        }
-                    }
-                }
-             } 
-            
-            }
-    }
-
-    if (!hitObstacle)
-    {
-        player->position.y += player->speed*delta;
-        player->speed += G*delta;
-        // if (player->position.y > 1900) hitObstacle = true;
-        player->canJump = false;
-    }
-    else player->canJump = true;
-}*/
-
-void UpdateCameraCenterInsideMap(Camera2D *camera, Player *player, EnvItem *envItems, int envItemsLength, float delta, int width, int height)
-{
-    camera->target = player->position;
-    camera->offset = (Vector2){ width/2.0f, height/2.0f };
-    float minX = 1000, minY = 1000, maxX = -1000, maxY = -1000;
-
-    for (int i = 0; i < envItemsLength; i++)
-    {
-        EnvItem *ei = envItems + i;
-        minX = fminf(ei->rect.x, minX);
-        maxX = fmaxf(ei->rect.x + ei->rect.width, maxX);
-        minY = fminf(ei->rect.y, minY);
-        maxY = fmaxf(ei->rect.y + ei->rect.height, maxY);
-    }
-
-    Vector2 max = GetWorldToScreen2D((Vector2){ maxX, maxY }, *camera);
-    Vector2 min = GetWorldToScreen2D((Vector2){ minX, minY }, *camera);
-
-    if (max.x < width) camera->offset.x = width - (max.x - width/2);
-    if (max.y < height) camera->offset.y = height - (max.y - height/2);
-    if (min.x > 0) camera->offset.x = width/2 - min.x;
-    if (min.y > 0) camera->offset.y = height/2 - min.y;
-}
-
