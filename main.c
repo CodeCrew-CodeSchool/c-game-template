@@ -141,6 +141,7 @@ bool visible[COIN_COUNT] = {0};
 int points = 0;
 int time = 0;       // For animation
 float location = 1.5f;
+Rectangle goals[4] = {0};
 
 #define G 800
 #define PLAYER_JUMP_SPD 400.0f
@@ -166,10 +167,10 @@ int tiles1[] = {
 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,9,
 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,1,1,1,1,
 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
-1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
-1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
+1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,1,
-1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
+1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,1,
 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
@@ -528,7 +529,7 @@ void UpdatePlayer(){
     
     
     // INPUT
-    dirX = (float)(IsKeyDown(KEY_D) - IsKeyDown(KEY_A));
+    dirX = (float)(IsKeyDown(KEY_RIGHT) - IsKeyDown(KEY_LEFT));// || (float)(IsKeyDown(KEY_LEFT) - IsKeyDown(KEY_RIGHT));
     dirY = (float)(IsKeyDown(KEY_S) - IsKeyDown(KEY_W));
     if(IsKeyPressed(KEY_TAB)){PLATFORMER = !PLATFORMER;}
     
@@ -585,13 +586,15 @@ void UpdatePlayer(){
     isGrounded = prevVel.y > 0.0f && vel.y <= 0.0001f;  // naive way to check grounded state
     //player.x += vel.x;
     //player.y += vel.y;
-    
+    if (CheckCollisionRecs(goals[currentScreen - 2], player)) {
+        nextLevel = true;
+    }
 }
 
 void UpdateCoin(){
     for (int i = 0; i < COIN_COUNT; i++){
         if (visible[i]){
-            RectangleCollisionUpdate(&coins[i], &(Vector2){0,0});
+            //RectangleCollisionUpdate(&coins[i], &(Vector2){0,0}); trying to collide coin with ground to bounce it out
             if (CheckCollisionRecs(coins[i], player)){
                 visible[i] = false;
                 points += 1;
@@ -644,8 +647,8 @@ void ScreenManagerDraw() {
                     EndMode2D();
                     // TODO: Draw TITLE screen here!
                     DrawRectangle(0, 0, screenWidth, screenHeight, GREEN);
-                    DrawText("TITLE SCREEN", screenWidth/4 - 100, screenHeight/3, 40, DARKGREEN);
-                    DrawText("PRESS ENTER or TAP to JUMP to GAMEPLAY SCREEN", screenWidth/4 - 200, screenHeight/2, 20, DARKGREEN);
+                    DrawText("Bitcoin Fixes this", screenWidth/4 - 150, screenHeight/3, 40, DARKGREEN);
+                    DrawText("PRESS ENTER or TAP to JUMP to PLAY", screenWidth/4 - 180, screenHeight/2, 20, DARKGREEN);
 
                 } break;
                 case LVL1:
@@ -693,8 +696,23 @@ void GameDraw(){
     
     // Render game's viewport
     //BeginTextureMode(viewport);
-        
-        DrawRectangle(0, 0, gameWidth, gameHeight, WHITE); // Background
+        Color currentBackgroundColor = { 0 };
+        switch (currentScreen) {
+            case LVL1: {
+                currentBackgroundColor = RAYWHITE;
+            } break;
+            case LVL2: {
+                currentBackgroundColor = BLUE;
+            } break;
+            case LVL3: {
+                currentBackgroundColor = DARKGRAY;
+            } break;
+            case LVL4: {
+                currentBackgroundColor = LIME;
+            } break;
+        }
+
+        DrawRectangle(0, 0, gameWidth, gameHeight, currentBackgroundColor); // Background
         DrawTileMap();
         DrawTileGrid();
         //DrawScoreText();
@@ -710,23 +728,47 @@ void GameDraw(){
 }
 
 void DrawTileMap(){
-    // Color wallcolor, backgroundColor;
-    // switch (level){
-    //     case 1: {
-    //         wallcolor = LIME;
-    //     }
-    // }
+    Color wallColor, accentColor;
+    switch (currentScreen){
+        case LVL1: {
+            //white
+            wallColor = LIME;
+            accentColor = GREEN;
+        } break;
+        case LVL2: {
+            //blue
+            wallColor = LIME;
+            accentColor = BROWN;
+        } break;
+        case LVL3: {
+            //red
+            wallColor = BROWN;
+            accentColor = MAROON;
+        } break;
+        case LVL4: {
+            //green
+            wallColor = BLACK;
+            accentColor = DARKGRAY;
+        } break;
+    }
     for (int y = 0; y < map.h; y++){
         for (int x = 0; x < map.w; x++){
             int i = x + y * map.w;
             int tile = map.cell[i];
-            if (tile){
+            if (tile > 0){
                 float cellX = (map.x + map.s * x);
                 float cellY = (map.y + map.s * y);
-                DrawRectangle((int)cellX, (int)cellY, map.s, map.s, LIME);
+                if (tile == 1) {
+                    DrawRectangle((int)cellX, (int)cellY, map.s, map.s, wallColor);
+                } else if (tile == 9) {
+                    float y = (float)sin(2 * PI * (time / 60.0f * 0.5) + (cellX * 5)) * 4; // pseudo random offset floating
+                    float x = (float)sin(2 * PI * (time / 60.0f * 2)) * 4;
+                    goals[currentScreen - 2] = (Rectangle){(int)(cellX + 4 + x * 0.5), (int)(cellY + y), (int)(32 - 4 - x), (int)32};
+                    DrawRectangleRec(goals[currentScreen - 2], ORANGE);
+                }
                 // check tile above
                 if (i - map.w >= 0 && !map.cell[i - map.w]){
-                    DrawLineEx((Vector2){cellX, cellY + 3}, (Vector2){cellX + map.s, cellY + 3}, 6.0f, GREEN);
+                    DrawLineEx((Vector2){cellX, cellY + 3}, (Vector2){cellX + map.s, cellY + 3}, 6.0f, accentColor);
                 }
             }
         }
@@ -756,7 +798,7 @@ void DrawPlayer(){
     
     // Artistic touch
     static int dirX = 0;
-    dirX = (float)(IsKeyDown(KEY_D) - IsKeyDown(KEY_A)) * 4;
+    dirX = (float)(IsKeyDown(KEY_RIGHT) - IsKeyDown(KEY_LEFT)) * 2;
     Vector2 L1 = (Vector2){player.x + 12 + dirX, player.y + 4}; //left eye
     Vector2 R1 = (Vector2){player.x + 20 + dirX, player.y + 4}; //right eye
     Vector2 L2 = L1;
@@ -870,6 +912,9 @@ void RectangleTileCollision(Rectangle *rect, Vector2 *velocity, RectList *list){
     // Solve X axis separately
     for (int i = 0; i < list->size; i++){
         b = &list->rect[i]; // next collision Rectangle
+        if (c.x == goals[currentScreen - 2].x && c.y == goals[currentScreen - 2].y && c.height == goals[currentScreen - 2].height && c.width == goals[currentScreen - 2].width) {
+            continue;
+        }
         if (CheckCollisionRecs(c, *b)) {
             // moving to the right
             if (velocity->x > 0.0f) {
