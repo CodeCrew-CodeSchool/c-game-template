@@ -24,7 +24,7 @@
               }
             ],
             "windows": {
-              "miDebuggerPath": "C:/raylib/w64devkit/bin/gdb.exe",
+              "miDebuggerPath": "C:\\Users\\DJ\\Documents\\GitHub\\devtools\\emsdk\\emscripten\\1.38.31\\emcc",
             },
             "osx": {
               "MIMode": "lldb"

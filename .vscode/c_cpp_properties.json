@@ -5,6 +5,10 @@
             "includePath": [
                 "C:/raylib/raylib/",
                 "C:/raylib/raylib/src/**",
+                "C:/Users/DJ/Documents/GitHub/devtools/emsdk/**",
+                "C:/Users/DJ/Documents/GitHub/devtools/emsdk/emscripten/1.38.31",
+                "C:/Users/DJ/Documents/GitHub/devtools/emsdk/emscripten/1.38.31/system/include/**",
+                "C:/Users/DJ/Documents/GitHub/devtools/emsdk/emscripten/1.38.31/system/include/emscripten/**",
                 "${workspaceFolder}/**"
             ],
             "defines": [
@@ -14,7 +18,8 @@
                 "GRAPHICS_API_OPENGL_33",
                 "PLATFORM_DESKTOP"
             ],
-            "compilerPath": "C:/raylib/w64devkit/bin/gcc.exe",
+            "compilerPath": "C:\\Users\\DJ\\Documents\\GitHub\\devtools\\emsdk\\emscripten\\1.38.31\\emcc",
+            // "C:/raylib/w64devkit/bin/gcc.exe",
             "cStandard": "c99",
             "cppStandard": "c++14",
             "intelliSenseMode": "gcc-x64"

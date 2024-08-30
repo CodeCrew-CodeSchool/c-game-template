@@ -9,6 +9,9 @@
 		"**/*.exe": true,
     },
     "files.associations": {
-        "string.h": "c"
+        "string.h": "c",
+        "raymath.h": "c",
+        "emscripten.h": "c",
+        "sdl.h": "c"
     }
 }
