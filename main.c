@@ -140,6 +140,7 @@ Rectangle coins[COIN_COUNT] = {0};
 bool visible[COIN_COUNT] = {0};
 int points = 0;
 int time = 0;       // For animation
+float location = 1.5f;
 
 #define G 800
 #define PLAYER_JUMP_SPD 400.0f
@@ -292,7 +293,6 @@ int main(void)
 
             BeginMode2D(camera);
 
-
                 ScreenManagerDraw();
                 
                 //DELETE
@@ -301,11 +301,23 @@ int main(void)
                 // DrawText(cameraKnows, 20, 185, 20, BLACK);
 
             EndMode2D();
+            if (currentScreen == LVL1 || currentScreen == LVL2 || currentScreen == LVL3 || currentScreen == LVL4) {
 
+                DrawText("Controls:", 20, 20, 10, DARKGRAY);
+                DrawText("- Right/Left to move", 40, 40, 10, DARKGRAY);
+                DrawText("- Space to jump", 40, 60, 10, DARKGRAY);
+                DrawText("- Mouse Wheel to Zoom in-out, R to reset zoom", 40, 80, 10, DARKGRAY);
+                
+                char playerPosText[20];// = "Player X: &s" + player.position.x;
+                sprintf(playerPosText, "Camera Offset X: %.2f, Camera Offset Y: %.2f", camera.offset.x, camera.offset.y);
+                DrawText(playerPosText, 20, 160, 10, BLACK);
+                // DrawText(playerPosText, 20 + camera.offset.x, 160 + camera.offset.y, 10, BLACK); //funny movement
+                DrawScoreText();
+            }
+            
         EndDrawing();
         //----------------------------------------------------------------------------------
     }
-
     // De-Initialization
     //--------------------------------------------------------------------------------------
     CloseWindow();        // Close window and OpenGL context
@@ -371,16 +383,10 @@ void Reset(){
     points = 0;
     time = 0;
     
-    coins[0] = (Rectangle){s * 1.5f, s * 8, 10.0f, 10.0f};
-    coins[1] = (Rectangle){s * 3.5f, s * 6, 10.0f, 10.0f};
-    coins[2] = (Rectangle){s * 4.5f, s * 6, 10.0f, 10.0f};
-    coins[3] = (Rectangle){s * 5.5f, s * 6, 10.0f, 10.0f};
-    coins[4] = (Rectangle){s * 8.5f, s * 3, 10.0f, 10.0f};
-    coins[5] = (Rectangle){s * 9.5f, s * 3, 10.0f, 10.0f};
-    coins[6] = (Rectangle){s * 10.5f, s * 3, 10.0f, 10.0f};
-    coins[7] = (Rectangle){s * 14.5f, s * 4, 10.0f, 10.0f};
-    coins[8] = (Rectangle){s * 15.5f, s * 4, 10.0f, 10.0f};
-    coins[9] = (Rectangle){s * 17.5f, s * 2, 10.0f, 10.0f};
+    for (int i = 0; i < COIN_COUNT; i++) {
+        coins[i] = (Rectangle){s * location, s * (4 + (i % 4)), 10.0f, 10.0f};
+        location += 2;
+    }
     
     for (int i = 0; i < COIN_COUNT; i++){visible[i] = true;}
 
@@ -405,11 +411,11 @@ void ScreenManagerUpdate(){
             case LOGO:
             {
                 // TODO: Update LOGO screen variables here!
-
+                
                 framesCounter++;    // Count frames
 
                 // Wait for 2 seconds (120 frames) before jumping to TITLE screen
-                if (framesCounter > 120)
+                if (framesCounter > 180)
                 {
                     currentScreen = TITLE;
                 }
@@ -585,6 +591,7 @@ void UpdatePlayer(){
 void UpdateCoin(){
     for (int i = 0; i < COIN_COUNT; i++){
         if (visible[i]){
+            RectangleCollisionUpdate(&coins[i], &(Vector2){0,0});
             if (CheckCollisionRecs(coins[i], player)){
                 visible[i] = false;
                 points += 1;
@@ -620,14 +627,21 @@ void ScreenManagerDraw() {
             {
                 case LOGO:
                 {
+                    EndMode2D();
+                    //Texture2D dij = LoadTexture("resources/logo.png");
                     // TODO: Draw LOGO screen here!
                     DrawRectangle(0, 0, screenWidth, screenHeight, BLUE);
-                    DrawText("LOGO SCREEN", screenWidth/4 - 100, screenHeight/3, 40, BLACK);
-                    DrawText("WAIT for 2 SECONDS...", screenWidth/4 - 100, screenHeight/2, 20, BLACK);
-
+                    //DrawTexture(dij, 0, 0, BLACK);
+                    DrawCircle(385, 225, 150.0f, BLACK);
+                    DrawCircleLines(385, 225, 150.0f, WHITE);
+                    DrawText("dij", 335, 190, 80, WHITE);
+                    DrawText("built by", 85, screenHeight / 2 - 15, 35, RAYWHITE);
+                    DrawText("WAIT for 3 SECONDS...", screenWidth/2.6, screenHeight - 100, 20, LIGHTGRAY);
+                    //UnloadTexture(dij);
                 } break;
                 case TITLE:
                 {
+                    EndMode2D();
                     // TODO: Draw TITLE screen here!
                     DrawRectangle(0, 0, screenWidth, screenHeight, GREEN);
                     DrawText("TITLE SCREEN", screenWidth/4 - 100, screenHeight/3, 40, DARKGREEN);
@@ -660,6 +674,7 @@ void ScreenManagerDraw() {
                 } break;
                 case ENDING:
                 {
+                    EndMode2D();
                     // TODO: Draw ENDING screen here!
                     DrawRectangle(0, 0, screenWidth, screenHeight, BLUE);
                     DrawText("ENDING SCREEN", screenWidth/4 - 100, screenHeight/3, 40, BLACK);
@@ -682,7 +697,7 @@ void GameDraw(){
         DrawRectangle(0, 0, gameWidth, gameHeight, WHITE); // Background
         DrawTileMap();
         DrawTileGrid();
-        DrawScoreText();
+        //DrawScoreText();
         DrawCoins();
         DrawPlayer();
     //EndTextureMode();
@@ -691,14 +706,6 @@ void GameDraw(){
     //BeginDrawing();
         ClearBackground(BLACK);
         //DrawTexturePro(viewport.texture, vp_r, out_r, origin, 0.0f, WHITE);
-        DrawText("Controls:", 20, 20, 10, DARKGRAY);
-        DrawText("- Right/Left to move", 40, 40, 10, DARKGRAY);
-        DrawText("- Space to jump", 40, 60, 10, DARKGRAY);
-        DrawText("- Mouse Wheel to Zoom in-out, R to reset zoom", 40, 80, 10, DARKGRAY);
-        
-        char playerPosText[20];// = "Player X: &s" + player.position.x;
-        sprintf(playerPosText, "Player X: %.2f, Player Y: %.2f", player.x, player.y);
-        DrawText(playerPosText, 20, 160, 10, BLACK);
     //EndDrawing();
 }
 
@@ -794,7 +801,7 @@ void DrawScoreText(){
 
 //collision methods
 void RectangleCollisionUpdate(Rectangle *rect, Vector2 *velocity){
-    Rectangle colArea = RectangleResize(rect, velocity);
+    Rectangle colArea = RectangleResize(rect, velocity); //collide Area
     RectList *tiles = RectangleListFromTiles(&colArea, &map);
     
     RectangleTileCollision(rect, velocity, tiles);
