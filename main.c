@@ -438,6 +438,7 @@ void ScreenManagerUpdate(){
                 // Press enter to change to ENDING screen
                 if (IsKeyPressed(KEY_P) || IsGestureDetected(GESTURE_TAP))
                 {
+                    Lvl2Init();
                     currentScreen = LVL2;
                 }
             } break;
@@ -450,6 +451,7 @@ void ScreenManagerUpdate(){
                 }
                 if (IsKeyPressed(KEY_P) || IsGestureDetected(GESTURE_TAP))
                 {
+                    Lvl3Init();
                     currentScreen = LVL3;
                 }
             } break;
@@ -462,6 +464,7 @@ void ScreenManagerUpdate(){
                 }
                 if (IsKeyPressed(KEY_P) || IsGestureDetected(GESTURE_TAP))
                 {
+                    Lvl4Init();
                     currentScreen = LVL4;
                 }
             } break;
@@ -618,17 +621,17 @@ void ScreenManagerDraw() {
                 case LOGO:
                 {
                     // TODO: Draw LOGO screen here!
-                    DrawRectangle(-400, 0, screenWidth, screenHeight, BLUE);
-                    DrawText("LOGO SCREEN", -100, 100, 40, BLACK);
-                    DrawText("WAIT for 2 SECONDS...", -100, 220, 20, BLACK);
+                    DrawRectangle(0, 0, screenWidth, screenHeight, BLUE);
+                    DrawText("LOGO SCREEN", screenWidth/4 - 100, screenHeight/3, 40, BLACK);
+                    DrawText("WAIT for 2 SECONDS...", screenWidth/4 - 100, screenHeight/2, 20, BLACK);
 
                 } break;
                 case TITLE:
                 {
                     // TODO: Draw TITLE screen here!
-                    DrawRectangle(-400, 0, screenWidth, screenHeight, GREEN);
-                    DrawText("TITLE SCREEN", -100, 100, 40, DARKGREEN);
-                    DrawText("PRESS ENTER or TAP to JUMP to GAMEPLAY SCREEN", -100, 220, 20, DARKGREEN);
+                    DrawRectangle(0, 0, screenWidth, screenHeight, GREEN);
+                    DrawText("TITLE SCREEN", screenWidth/4 - 100, screenHeight/3, 40, DARKGREEN);
+                    DrawText("PRESS ENTER or TAP to JUMP to GAMEPLAY SCREEN", screenWidth/4 - 200, screenHeight/2, 20, DARKGREEN);
 
                 } break;
                 case LVL1:
@@ -658,9 +661,9 @@ void ScreenManagerDraw() {
                 case ENDING:
                 {
                     // TODO: Draw ENDING screen here!
-                    DrawRectangle(-400, 0, screenWidth, screenHeight, BLUE);
-                    DrawText("ENDING SCREEN", -100, 100, 40, DARKBLUE);
-                    DrawText("PRESS ENTER or TAP to RETURN to TITLE SCREEN", -100, 220, 20, DARKBLUE);
+                    DrawRectangle(0, 0, screenWidth, screenHeight, BLUE);
+                    DrawText("ENDING SCREEN", screenWidth/4 - 100, screenHeight/3, 40, BLACK);
+                    DrawText("PRESS ENTER or TAP to RETURN to TITLE SCREEN", screenWidth/4 - 200, screenHeight/2, 20, BLACK);
 
                 } break;
                 default: break;
