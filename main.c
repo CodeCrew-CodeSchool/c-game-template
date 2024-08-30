@@ -14,13 +14,13 @@
 ********************************************************************************************/
 //DONE
 //jump kinda works
+//keep camera
 
 //TODO
 //main - loads screenmanager -> loads each platform level
 //bitcoin power icon in corner
 //map as 0,1 tileset
 //tile convert rendering
-//keep camera
 //settle on camera mode
 //1 good level
 //random level generation?
@@ -107,7 +107,7 @@ void DrawPlayer();
 void DrawScoreText();
 
 void UpdateScreen();
-void UpdatePlayer(Camera2D camera);
+void UpdatePlayer();
 void UpdateCoin();
 
 void UpdateCameraCenterInsideMap(Camera2D *camera, float delta, int width, int height);
@@ -126,7 +126,9 @@ int screenWidth = 32*MAP_W;
 int screenHeight = 32*MAP_H;
 const int gameWidth = 32*MAP_W;
 const int gameHeight = 32*MAP_H;
-RenderTexture viewport;
+const int myW = 1280;
+const int myH = 896;
+//RenderTexture viewport;
 int scale = 1;
 Vector2 vpOffset = (Vector2){0.0f, 0.0f};
 
@@ -145,32 +147,31 @@ int time = 0;       // For animation
 
 
 
-//    EnvItem envItems[] = {
-//         {{ 0, 0, 2000, 1000 }, 0, RAYWHITE, 0 }, //backdrop
-//         //{{ 0, 400, 1020, 200 }, 1, YELLOW, 0 }, //ground
-//         // {{ 300, 200, 400, 10 }, 1, BLUE, 0 }, // top platform
-//         // {{ 250, 300, 100, 10 }, 1, GREEN, 0 }, // left platform
-//         // {{ 650, 300, 100, 10 }, 1, RED, 0 }, // right platform
-//         // {{ 600, 100, 50, 300}, 1, BLACK, 1 }
-//     };
-
 Grid map;
+
+//10 x 32 width
+//by
+//7 x 32 height
+
+//320 x 224
+//1280 x 896
+
 int tiles1[] = {
 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
-1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,1,
-1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
-1,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,
-1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
+1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,9,
+1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,9,
+1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,9,
+1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,1,1,1,1,
 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
-1,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
+1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
+1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,1,
 1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
-1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
-1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
-1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
-1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
+1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
+1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,1,
+1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
 };
 int tiles2[] = {
@@ -231,56 +232,55 @@ int main(void)
 
     InitWindow(screenWidth, screenHeight, "BFT - Bitcoin Fixed This");
 
-    // Player player = { 0 };
-    // player.position = (Vector2){ 400, 280 };
-    // player.speed = 0;
-    // player.canJump = false;
- 
-    //int envItemsLength = sizeof(envItems)/sizeof(envItems[0]);
+    //create camera
+    Camera2D camera = { 0 };
+    camera.target = (Vector2){(int)player.x, (int)player.y};
+    camera.offset = (Vector2){ screenWidth/2.0f, screenHeight/2.0f };
+    camera.rotation = 0.0f;
+    camera.zoom = 1.0f;
+
 
     SetTargetFPS(60);
     //--------------------------------------------------------------------------------------
+
+    
 
     // Main game loop
     while (!WindowShouldClose())
     {
         // Update
         //----------------------------------------------------------------------------------
-        Camera2D camera = { 0 };
-        camera.target = (Vector2){player.x, player.y};
-        camera.offset = (Vector2){ screenWidth/2.0f, screenHeight/2.0f };
-        camera.rotation = 0.0f;
-        camera.zoom = 1.0f;
-        //screenmanager switch
-        ScreenManagerUpdate(camera);
-        char cameraKnows[30];
-        sprintf(cameraKnows,"camera knows player @ (X: %.2f, Y: %.2f)", player.x, player.y);
-        DrawText(cameraKnows, -100, 100, 20, BLACK);
-        camera.target = (Vector2){ player.x, player.y };
-        camera.offset = (Vector2){ screenWidth/2.0f, screenHeight/2.0f };
-        float minX = gameWidth, minY = gameHeight, maxX = -1 * gameWidth, maxY = -1 * gameHeight;
         
+        //screenmanager switch
+        ScreenManagerUpdate();
+
+        //update camera bound to game world bounds
+        camera.offset = (Vector2){ screenWidth/2, screenHeight/2 };
+        camera.target = (Vector2){ player.x, player.y };
+
+        float minX = 0, minY = 0, maxX = gameWidth, maxY = gameHeight;
+        
+        minX = fminf(0, minX);
+        maxX = fmaxf(0 + gameWidth, maxX);
+        minY = fminf(0, minY);
+        maxY = fmaxf(0 + gameHeight, maxY);
+
         Vector2 max = GetWorldToScreen2D((Vector2){ maxX, maxY }, camera);
         Vector2 min = GetWorldToScreen2D((Vector2){ minX, minY }, camera);
 
-        if (max.x > screenWidth) camera.offset.x = screenWidth - (max.x - screenWidth/2);
-        if (max.y > screenHeight) camera.offset.y = screenHeight - (max.y - screenHeight/2);
-        if (min.x < 0) camera.offset.x = screenWidth/2 - min.x;
-        if (min.y < 0) camera.offset.y = screenHeight/2 - min.y;
-        //float deltaTime = GetFrameTime();
-        //camera zoom
-        // camera.zoom += ((float)GetMouseWheelMove()*0.05f);
-
-        // if (camera.zoom > 3.0f) camera.zoom = 3.0f;
-        // else if (camera.zoom < 0.25f) camera.zoom = 0.25f;
-
-        // if (IsKeyPressed(KEY_R))
-        // {
-        //     camera.zoom = 1.0f;
-        //     player.position = (Vector2){ 400, 280 };
-        // }
-        //platformer logic below
-        //UpdatePlayer(&player, envItems, envItemsLength, deltaTime);
+        if (max.x < screenWidth) {
+            camera.offset.x = screenWidth - (max.x - screenWidth/2);
+        }
+        if (max.y < screenHeight) {
+            camera.offset.y = screenHeight - (max.y - screenHeight/2);
+        }
+        if (min.x > 0) {
+            camera.offset.x = screenWidth/2 - min.x;
+        }
+        if (min.y > 0) {
+            camera.offset.y = screenHeight/2 - min.y;
+        }
+        //end camera update
         
         //----------------------------------------------------------------------------------
 
@@ -292,15 +292,13 @@ int main(void)
 
             BeginMode2D(camera);
 
-                //for (int i = 0; i < envItemsLength; i++) DrawRectangleRec(envItems[i].rect, envItems[i].color);
 
                 ScreenManagerDraw();
-                /*
-                old player logic
-                Rectangle playerRect = { player.position.x - 20, player.position.y - 40, 40.0f, 40.0f };
-                DrawRectangleRec(playerRect, RED);
                 
-                DrawCircleV(player.position, 5.0f, GOLD);*/
+                //DELETE
+                // char cameraKnows[30];
+                // sprintf(cameraKnows,"camera is @ (X: %.2f, Y: %.2f)", camera.offset.x, camera.offset.y);
+                // DrawText(cameraKnows, 20, 185, 20, BLACK);
 
             EndMode2D();
 
@@ -320,9 +318,8 @@ int main(void)
 //Game Methods
 
 void GameInit() {
-    //SetConfigFlags(FLAG_WINDOW_RESIZABLE);
-    //InitWindow(screenWidth, screenHeight, "classic game: platformer");
-    viewport = LoadRenderTexture(gameWidth, gameHeight);
+    
+    //viewport = LoadRenderTexture(gameWidth, gameHeight);
     map.x = 0.0f;
     map.y = 0.0f;
     map.w = MAP_W;
@@ -332,10 +329,9 @@ void GameInit() {
     Reset();
 }
 void Lvl2Init() {
-    //SetConfigFlags(FLAG_WINDOW_RESIZABLE);
-    //InitWindow(screenWidth, screenHeight, "classic game: platformer");
+    
     nextLevel = false;
-    viewport = LoadRenderTexture(gameWidth, gameHeight);
+    //viewport = LoadRenderTexture(gameWidth, gameHeight);
     map.x = 0.0f;
     map.y = 0.0f;
     map.w = MAP_W;
@@ -345,10 +341,9 @@ void Lvl2Init() {
     Reset();
 }
 void Lvl3Init() {
-    //SetConfigFlags(FLAG_WINDOW_RESIZABLE);
-    //InitWindow(screenWidth, screenHeight, "classic game: platformer");
+    
     nextLevel = false;
-    viewport = LoadRenderTexture(gameWidth, gameHeight);
+    //viewport = LoadRenderTexture(gameWidth, gameHeight);
     map.x = 0.0f;
     map.y = 0.0f;
     map.w = MAP_W;
@@ -358,10 +353,9 @@ void Lvl3Init() {
     Reset();
 }
 void Lvl4Init() {
-    //SetConfigFlags(FLAG_WINDOW_RESIZABLE);
-    //InitWindow(screenWidth, screenHeight, "classic game: platformer");
+   
     nextLevel = false;
-    viewport = LoadRenderTexture(gameWidth, gameHeight);
+    //viewport = LoadRenderTexture(gameWidth, gameHeight);
     map.x = 0.0f;
     map.y = 0.0f;
     map.w = MAP_W;
@@ -394,16 +388,16 @@ void Reset(){
 
 //may have to call the update methods separately to work with the screen manager
 
-void GameUpdate(Camera2D camera){
+void GameUpdate(){
     
     UpdateScreen();// Adapt to resolution
-    UpdatePlayer(camera);
+    UpdatePlayer();
     UpdateCoin();
     //UpdateCamera(camera, player);
 }
 
 //Update Methods
-void ScreenManagerUpdate(Camera2D camera){
+void ScreenManagerUpdate(){
         //CameraUpdate(&camera, GetFrameTime(), screenWidth, screenHeight);
 
     switch(currentScreen)
@@ -435,7 +429,7 @@ void ScreenManagerUpdate(Camera2D camera){
             {
                 // TODO: Update GAMEPLAY screen variables here!
 
-                GameUpdate(camera);
+                GameUpdate();
 
                 if (nextLevel == true)
                 {
@@ -449,7 +443,7 @@ void ScreenManagerUpdate(Camera2D camera){
             } break;
             case LVL2:
             {
-                GameUpdate(camera);
+                GameUpdate();
                 if (nextLevel == true)
                 {
                     currentScreen = LVL3;
@@ -461,7 +455,7 @@ void ScreenManagerUpdate(Camera2D camera){
             } break;
             case LVL3:
             {
-                GameUpdate(camera);
+                GameUpdate();
                 if (nextLevel == true)
                 {
                     currentScreen = LVL4;
@@ -473,7 +467,7 @@ void ScreenManagerUpdate(Camera2D camera){
             } break;
             case LVL4:
             {   
-                GameUpdate(camera);
+                GameUpdate();
                 if (nextLevel == true)
                 {
                     currentScreen = ENDING;
@@ -510,11 +504,11 @@ void UpdateScreen(){
 
 }
 
-void UpdatePlayer(Camera2D camera){
+void UpdatePlayer(){
     const float maxSpd = 6.0f;
-    const float acc = 0.1f;
-    const float grav = 0.5f;
-    const float jmpImpulse = -10.0f;
+    const float acc = 0.07f;
+    const float grav = 0.6f;
+    const float jmpImpulse = -15.0f;
     const int jmpBufferTime = 30;
     static bool isGrounded = false;
     static int jmpBuffer = 0;
@@ -582,8 +576,7 @@ void UpdatePlayer(Camera2D camera){
     isGrounded = prevVel.y > 0.0f && vel.y <= 0.0001f;  // naive way to check grounded state
     //player.x += vel.x;
     //player.y += vel.y;
-    CameraUpdate(&camera, GetFrameTime(), screenWidth, screenHeight);
-    UpdateCameraCenterInsideMap(&camera, GetFrameTime(), screenWidth, screenHeight);
+    
 }
 
 void UpdateCoin(){
@@ -603,9 +596,6 @@ void UpdateCoin(){
 
 void UpdateCameraCenterInsideMap(Camera2D *camera, float delta, int width, int height)
 {
-    char cameraKnows[30];
-    sprintf(cameraKnows,"camera knows player @ (X: %.2f, Y: %.2f)", player.x, player.y);
-    DrawText(cameraKnows, -100, 100, 20, BLACK);
     camera->target = (Vector2){ player.x, player.y };
     camera->offset = (Vector2){ width/2.0f, height/2.0f };
     float minX = gameWidth, minY = gameHeight, maxX = -1 * gameWidth, maxY = -1 * gameHeight;
@@ -644,7 +634,9 @@ void ScreenManagerDraw() {
                 case LVL1:
                 {
                     // TODO: Draw GAMEPLAY screen here!
+                    
                     GameDraw();
+                    
                     // DrawRectangle(0, 0, screenWidth, screenHeight, PURPLE);
                     // DrawText("GAMEPLAY SCREEN", 20, 20, 40, MAROON);
                     // DrawText("PRESS ENTER or TAP to JUMP to ENDING SCREEN", 130, 220, 20, MAROON);
@@ -682,19 +674,20 @@ void GameDraw(){
     Rectangle out_r = (Rectangle){vpOffset.x, vpOffset.y, gameWidth * scale, gameHeight * scale};
     
     // Render game's viewport
-    BeginTextureMode(viewport);
-        DrawRectangle(0, 0, gameWidth, gameHeight, SKYBLUE); // Background
+    //BeginTextureMode(viewport);
+        
+        DrawRectangle(0, 0, gameWidth, gameHeight, WHITE); // Background
         DrawTileMap();
         DrawTileGrid();
         DrawScoreText();
         DrawCoins();
         DrawPlayer();
-    EndTextureMode();
+    //EndTextureMode();
     
     // Draw the viewport
     //BeginDrawing();
         ClearBackground(BLACK);
-        DrawTexturePro(viewport.texture, vp_r, out_r, origin, 0.0f, WHITE);
+        //DrawTexturePro(viewport.texture, vp_r, out_r, origin, 0.0f, WHITE);
         DrawText("Controls:", 20, 20, 10, DARKGRAY);
         DrawText("- Right/Left to move", 40, 40, 10, DARKGRAY);
         DrawText("- Space to jump", 40, 60, 10, DARKGRAY);
@@ -707,6 +700,12 @@ void GameDraw(){
 }
 
 void DrawTileMap(){
+    // Color wallcolor, backgroundColor;
+    // switch (level){
+    //     case 1: {
+    //         wallcolor = LIME;
+    //     }
+    // }
     for (int y = 0; y < map.h; y++){
         for (int x = 0; x < map.w; x++){
             int i = x + y * map.w;
@@ -742,20 +741,20 @@ void DrawTileGrid(){
 }
 
 void DrawPlayer(){
-    DrawRectangle((int)player.x, (int)player.y, (int)player.width, (int)player.height, WHITE);
+    DrawRectangle((int)player.x, (int)player.y, (int)player.width, (int)player.height, ORANGE);
     DrawRectangleLinesEx(player, 2, BLACK);
     
     // Artistic touch
     static int dirX = 0;
     dirX = (float)(IsKeyDown(KEY_D) - IsKeyDown(KEY_A)) * 4;
-    Vector2 L1 = (Vector2){player.x + 12 + dirX, player.y + 4};
-    Vector2 R1 = (Vector2){player.x + 20 + dirX, player.y + 4};
+    Vector2 L1 = (Vector2){player.x + 12 + dirX, player.y + 4}; //left eye
+    Vector2 R1 = (Vector2){player.x + 20 + dirX, player.y + 4}; //right eye
     Vector2 L2 = L1;
     L2.y += 8;
     Vector2 R2 = R1;
     R2.y += 8;
-    DrawLineEx(L1, L2, 2.0f, BLACK);
-    DrawLineEx(R1, R2, 2.0f, BLACK);
+    DrawLineEx(L1, L2, 2.0f, BLACK); //left eye
+    DrawLineEx(R1, R2, 2.0f, BLACK); //right eye
 }
 
 void DrawCoins(){
@@ -781,11 +780,11 @@ void DrawScoreText(){
     }
     
     const int size = 24;
-    int x = gameWidth /2 - MeasureText(text, size) / 2;
+    int x = screenWidth /2 - MeasureText(text, size) / 2;
     int y = 48;
     
     DrawText(text, x, y+1, size, BLACK);
-    DrawText(text, x, y, size, WHITE);
+    DrawText(text, x, y, size, BLACK);
     
     
 }
