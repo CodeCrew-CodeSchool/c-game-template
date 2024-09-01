@@ -1,8 +1,11 @@
 # STEPS
 
 1. Prerequisites:
+
 a. Windows
+
 b. Download [VS Code](https://code.visualstudio.com/download)
+
 c. [Download Raylib](https://www.raylib.com/) and install it. It should end up in C:/raylib
 
 2. Open main.c and hit F5 key
