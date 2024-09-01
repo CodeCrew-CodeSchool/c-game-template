@@ -1,21 +1,21 @@
 # STEPS
 
-1. [Download Raylib](https://www.raylib.com/) and install it. It should end up in C:/raylib
+1. Prerequisites:
+a. Windows
+b. Download [VS Code](https://code.visualstudio.com/download)
+c. [Download Raylib](https://www.raylib.com/) and install it. It should end up in C:/raylib
 
 2. Open main.c and hit F5 key
 
 2. OR open the Run and Debug window and hit the Play Button. Make sure the text says Debug.
 
-## Bouncing Ball Source Code
+# BFT - Bitcoin Fixed This
 
-- Replace the contents of main.c with ball.c and Debug to test it out
-
-## Arkanoid Source Code
-
-- Replace the contents of main.c with arkanoid.c and Debug to test it out
+Play through a platforming adventure where you collect Satoshis. Along your adventure to stack sats, you'll uncover the nefarious deeds of Uncle Sam. His eagles, agents, and bankers are trying to stop you!
+Good luck, anon.
 
 
-
+---------------------------------------------
 
 # Here are Some Additional Build Steps if You're Curious
 
