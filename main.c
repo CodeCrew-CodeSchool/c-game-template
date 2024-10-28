@@ -38,8 +38,8 @@
 //Player 
 //Orange - You, the hero, the difference. Orange Pill the world
 
-#include "raylib.h"
-#include "raymath.h"
+#include <raylib.h>
+#include <raymath.h>
 #include <stdio.h>
 // #include "string.h"
 
@@ -115,6 +115,7 @@ void UpdateCameraCenterInsideMap(Camera2D *camera, float delta, int width, int h
 void ScreenManagerUpdate();
 void ScreenManagerDraw();
 
+void UpdateDrawFrame();
 
 //collision methods
 void        RectangleCollisionUpdate(Rectangle *rect, Vector2 *velocity);
@@ -228,7 +229,7 @@ int tiles4[] = {
 void (*CameraUpdate)(Camera2D*, float, int, int) = {
         UpdateCameraCenterInsideMap
     };
-int main(void)
+int _start(void)
 {
     // Initialization
     //--------------------------------------------------------------------------------------
@@ -244,20 +245,23 @@ int main(void)
     camera.rotation = 0.0f;
     camera.zoom = 1.0f;
 
+    #if defined(PLATFORM_WEB)
+        emscripten_set_main_loop(UpdateDrawFrame, 0, 1);
+    #else
 
     SetTargetFPS(60);
     //--------------------------------------------------------------------------------------
 
-    
-
     // Main game loop
     while (!WindowShouldClose())
     {
+        
         // Update
         //----------------------------------------------------------------------------------
         
         //screenmanager switch
         ScreenManagerUpdate();
+
 
         //update camera bound to game world bounds
         camera.offset = (Vector2){ screenWidth/2, screenHeight/2 };
@@ -322,6 +326,7 @@ int main(void)
         EndDrawing();
         //----------------------------------------------------------------------------------
     }
+    #endif
     // De-Initialization
     //--------------------------------------------------------------------------------------
     CloseWindow();        // Close window and OpenGL context
@@ -330,6 +335,77 @@ int main(void)
     return 0;
 }
 
+void UpdateDrawFrame(){
+        Camera2D camera = { 0 };
+    camera.target = (Vector2){(int)player.x, (int)player.y};
+    camera.offset = (Vector2){ screenWidth/2.0f, screenHeight/2.0f };
+    camera.rotation = 0.0f;
+    camera.zoom = 1.0f;
+     //screenmanager switch
+        ScreenManagerUpdate();
+
+        //update camera bound to game world bounds
+        camera.offset = (Vector2){ screenWidth/2, screenHeight/2 };
+        camera.target = (Vector2){ player.x, player.y };
+
+        float minX = 0, minY = 0, maxX = gameWidth, maxY = gameHeight;
+        
+        minX = fminf(0, minX);
+        maxX = fmaxf(0 + gameWidth, maxX);
+        minY = fminf(0, minY);
+        maxY = fmaxf(0 + gameHeight, maxY);
+
+        Vector2 max = GetWorldToScreen2D((Vector2){ maxX, maxY }, camera);
+        Vector2 min = GetWorldToScreen2D((Vector2){ minX, minY }, camera);
+
+        if (max.x < screenWidth) {
+            camera.offset.x = screenWidth - (max.x - screenWidth/2);
+        }
+        if (max.y < screenHeight) {
+            camera.offset.y = screenHeight - (max.y - screenHeight/2);
+        }
+        if (min.x > 0) {
+            camera.offset.x = screenWidth/2 - min.x;
+        }
+        if (min.y > 0) {
+            camera.offset.y = screenHeight/2 - min.y;
+        }
+        //end camera update
+        
+        //----------------------------------------------------------------------------------
+
+        // Draw
+        //----------------------------------------------------------------------------------
+        BeginDrawing();
+
+            ClearBackground(LIGHTGRAY);
+
+            BeginMode2D(camera);
+
+                ScreenManagerDraw();
+                
+                //DELETE
+                // char cameraKnows[30];
+                // sprintf(cameraKnows,"camera is @ (X: %.2f, Y: %.2f)", camera.offset.x, camera.offset.y);
+                // DrawText(cameraKnows, 20, 185, 20, BLACK);
+
+            EndMode2D();
+            if (currentScreen == LVL1 || currentScreen == LVL2 || currentScreen == LVL3 || currentScreen == LVL4) {
+
+                DrawText("Controls:", 20, 20, 10, DARKGRAY);
+                DrawText("- Right/Left to move", 40, 40, 10, DARKGRAY);
+                DrawText("- Space to jump", 40, 60, 10, DARKGRAY);
+                DrawText("- Mouse Wheel to Zoom in-out, R to reset zoom", 40, 80, 10, DARKGRAY);
+                
+                char playerPosText[50];// = "Player X: &s" + player.position.x;
+                sprintf(playerPosText, "Camera Offset X: %.2f, Camera Offset Y: %.2f", camera.offset.x, camera.offset.y);
+                DrawText(playerPosText, 20, 160, 10, BLACK);
+                // DrawText(playerPosText, 20 + camera.offset.x, 160 + camera.offset.y, 10, BLACK); //funny movement
+                DrawScoreText();
+            }
+            
+        EndDrawing();
+}
 
 //Game Methods
 
@@ -683,7 +759,7 @@ void ScreenManagerDraw() {
                     EndMode2D();
                     // TODO: Draw ENDING screen here!
                     DrawRectangle(0, 0, screenWidth, screenHeight, BLUE);
-                    DrawText("ENDING SCREEN", screenWidth/4 - 100, screenHeight/3, 40, BLACK);
+                    DrawText("Bitcoin Fixed This!", screenWidth/4 - 100, screenHeight/3, 40, BLACK);
                     DrawText("PRESS ENTER or TAP to RETURN to TITLE SCREEN", screenWidth/4 - 200, screenHeight/2, 20, BLACK);
 
                 } break;
@@ -692,10 +768,6 @@ void ScreenManagerDraw() {
 }
 
 void GameDraw(){
-    // Viewport scaling
-    const Vector2 origin = (Vector2){0.0f, 0.0f};
-    const Rectangle vp_r = (Rectangle){0.0f,gameHeight,gameWidth, -gameHeight}; // flip vertically: position = left-bottom
-    Rectangle out_r = (Rectangle){vpOffset.x, vpOffset.y, gameWidth * scale, gameHeight * scale};
     
     // Render game's viewport
     //BeginTextureMode(viewport);
@@ -713,6 +785,8 @@ void GameDraw(){
             case LVL4: {
                 currentBackgroundColor = LIME;
             } break;
+            default:
+            {} break;
         }
 
         DrawRectangle(0, 0, gameWidth, gameHeight, currentBackgroundColor); // Background
@@ -753,6 +827,8 @@ void DrawTileMap(){
             wallColor = BLACK;
             accentColor = DARKGRAY;
         } break;
+        default:
+        {} break;
     }
     for (int y = 0; y < map.h; y++){
         for (int x = 0; x < map.w; x++){

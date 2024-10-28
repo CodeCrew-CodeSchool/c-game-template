@@ -12,6 +12,8 @@
         "string.h": "c",
         "raymath.h": "c",
         "emscripten.h": "c",
-        "sdl.h": "c"
+        "sdl.h": "c",
+        "raylib.h": "c",
+        "stdio.h": "c"
     }
 }

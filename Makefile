@@ -24,16 +24,16 @@
 .PHONY: all clean
 
 # Define required raylib variables
-PROJECT_NAME       ?= main
+PROJECT_NAME       ?= game
 RAYLIB_VERSION     ?= 4.2.0
-RAYLIB_PATH        ?= C:/raylib/raylib/
+RAYLIB_PATH        ?= C:/raylib/raylibWeb
 
 # Define compiler path on Windows
 COMPILER_PATH      ?= C:/raylib/w64devkit/bin
 
 # Define default options
 # One of PLATFORM_DESKTOP, PLATFORM_ANDROID, PLATFORM_WEB
-PLATFORM           ?= PLATFORM_DESKTOP
+PLATFORM           ?= PLATFORM_WEB
 
 # Locations of your newly installed library and associated headers. See ../src/Makefile
 # On Linux, if you have installed raylib but cannot compile the examples, check that
@@ -47,7 +47,7 @@ PLATFORM           ?= PLATFORM_DESKTOP
 DESTDIR ?= C:/Users/DJ/Documents/Github/c-game-template/build
 RAYLIB_INSTALL_PATH ?= $(DESTDIR)/lib
 # RAYLIB_H_INSTALL_PATH locates the installed raylib header and associated source files.
-RAYLIB_H_INSTALL_PATH ?= $(DESTDIR)/include
+RAYLIB_H_INSTALL_PATH ?= $(RAYLIB_PATH)/src
 
 # Library type used for raylib: STATIC (.a) or SHARED (.so/.dll)
 RAYLIB_LIBTYPE        ?= STATIC
@@ -117,7 +117,7 @@ endif
 
 ifeq ($(PLATFORM),PLATFORM_WEB)
     # Emscripten required variables
-    EMSDK_PATH         ?= C:/Users/DJ/Documents/GitHub/devtools/emsdk/
+    EMSDK_PATH         ?= C:/Users/DJ/Documents/GitHub/devtools/emsdk
     EMSCRIPTEN_PATH    ?= $(EMSDK_PATH)/upstream/emscripten
     CLANG_PATH          = $(EMSDK_PATH)/upstream/bin
     PYTHON_PATH         = $(EMSDK_PATH)/python/3.9.2-nuget_64bit
@@ -243,13 +243,13 @@ ifeq ($(PLATFORM),PLATFORM_WEB)
     endif
 
     # Define a custom shell .html and output extension
-    CFLAGS += --shell-file $(RAYLIB_PATH)/src/shell.html
+    CFLAGS += --shell-file $(RAYLIB_PATH)/src/minshell.html
     EXT = .html
 endif
 
 # Define include paths for required headers
 # NOTE: Several external required libraries (stb and others)
-INCLUDE_PATHS = -I. -I$(RAYLIB_PATH)/src -I$(RAYLIB_PATH)/src/external
+INCLUDE_PATHS = -I. -I$(RAYLIB_RELEASE_PATH)/libraylib.a -I$(RAYLIB_RELEASE_PATH)/raylib.h -I$(RAYLIB_RELEASE_PATH) -I$(RAYLIB_PATH)/external
 
 # Define additional directories containing required header files
 ifeq ($(PLATFORM),PLATFORM_RPI)
@@ -269,14 +269,17 @@ ifeq ($(PLATFORM),PLATFORM_DESKTOP)
         INCLUDE_PATHS = -I$(RAYLIB_H_INSTALL_PATH) -isystem. -isystem$(RAYLIB_PATH)/src -isystem$(RAYLIB_PATH)/release/include -isystem$(RAYLIB_PATH)/src/external
     endif
 endif
+ifeq ($(PLATFORM), PLATFORM_WEB)
+	INCLUDE_PATHS += -I$(EMSCRIPTEN_PATH)/cache/sysroot/include -I$(EMSCRIPTEN_PATH)/cache/sysroot/lib
+endif
 
 # Define library paths containing required libs.
-LDFLAGS = -L. -L$(RAYLIB_RELEASE_PATH) -L$(RAYLIB_PATH)/src
+LDFLAGS = -L. -L$(RAYLIB_RELEASE_PATH) -L$(RAYLIB_RELEASE_PATH)/libraylib.a 
 
 ifeq ($(PLATFORM),PLATFORM_DESKTOP)
     ifeq ($(PLATFORM_OS),BSD)
         # Consider -L$(RAYLIB_INSTALL_PATH)
-        LDFLAGS += -L. -Lsrc -L/usr/local/lib
+        LDFLAGS += -L. -Lsrc -L/usr/local/lib -L$(RAYLIB_INSTALL_PATH)
     endif
     ifeq ($(PLATFORM_OS),LINUX)
         # Reset everything.
@@ -341,7 +344,7 @@ ifeq ($(PLATFORM),PLATFORM_RPI)
 endif
 ifeq ($(PLATFORM),PLATFORM_WEB)
     # Libraries for web (HTML5) compiling
-    LDLIBS = $(RAYLIB_RELEASE_PATH)/libraylib.a
+    LDLIBS = -ferror-limit=0 -L$(EMSCRIPTEN_PATH)/cache/sysroot/lib
 endif
 
 # Define a recursive wildcard function
@@ -372,7 +375,7 @@ all:
 
 # Project target defined by PROJECT_NAME
 $(PROJECT_NAME): $(OBJS)
-	$(CC) -o $(PROJECT_NAME)$(EXT) $(OBJS) $(CFLAGS) $(INCLUDE_PATHS) $(LDFLAGS) $(LDLIBS) -D$(PLATFORM)
+	$(CC) -o web/$(PROJECT_NAME)$(EXT) $(OBJS) $(CFLAGS) $(INCLUDE_PATHS) $(LDFLAGS) $(LDLIBS) -D$(PLATFORM)
 
 # Compile source files
 # NOTE: This pattern will compile every module defined on $(OBJS)
